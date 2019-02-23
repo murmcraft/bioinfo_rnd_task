@@ -1,4 +1,4 @@
-# A tiny pipeline for simple variant calling and quality control
+# Tiny pipeline for simple variant calling and quality control
 
 This pipeline implements the following:
 - input as BAM file
