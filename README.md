@@ -7,10 +7,8 @@ This pipeline implements the following:
 - merging the variant results together
 - variant calling summary report
 
-The workflow is tested with a small WGS dataset:
-
-NA12878 aligned to GRCh37 reference genome.
-
+The workflow is tested with a small WGS dataset:  
+NA12878 aligned to GRCh37 reference genome.  
 The raw data was obtained from [GATK test data sets](https://console.cloud.google.com/storage/browser/gatk-test-data).
 
 ## Build and run the Docker image
@@ -45,19 +43,16 @@ The input BAM file should be:
 - indexed, and
 - in correct format according to GATK requirements.
 
-To confirm that your data is indeed in suitable format,
+To confirm that your data is indeed in suitable format,  
 **run the validation and fix errors**, if necessary:
 ```
 validate-sam-file.sh \
     NA12878.bam \
     validate
 ```
-where `NA12878.bam` is input BAM filename and
+where `NA12878.bam` is input BAM filename and `validate` is output filename prefix.
 
-`validate` is output filename prefix.
-
-In case errors where found, the script procudes `.summary`and `.verbose` files, 
-
+In case errors where found, the script procudes `.summary`and `.verbose` files,   
 which indicate the errors and points their sources. 
 
 [GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
@@ -69,8 +64,7 @@ To run the entire workflow, use the script with wanted inputs:
 
 *********UPDATE HERE
 
-The full workflow will run each step described below. 
-
+The full workflow will run each step described below.  
 Wanted steps can also be run separately according to the command examples.
 
 ## Read and alignment quality
