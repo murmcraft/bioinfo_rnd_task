@@ -8,11 +8,11 @@ This pipeline implements the following:
 - variant calling summary report
 
 The workflow is tested with a small WGS dataset - NA12878 aligned to GRCh37 reference genome.  
-The raw data was obtained from [GATK test data sets](https://console.cloud.google.com/storage/browser/gatk-test-data){:target="_blank"}.
+The raw data was obtained from [GATK test data sets](https://console.cloud.google.com/storage/browser/gatk-test-data).
 
 ## Build and run the Docker image
 
-The Dockerfile is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/){:target="_blank"}.
+The Dockerfile is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) with added tools and functionalities.
 
 It includes GATK4 and additional tools required for the pipeline:
 - GATK v4.1.0.0
@@ -54,7 +54,7 @@ where `NA12878.bam` is input BAM filename and `validate` is output filename pref
 In case errors where found, the script procudes `.summary`and `.verbose` files,   
 which indicate the errors and points their sources. 
 
-[GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571){:target="_blank"} provides tips how to fix the BAM file into a compatible format. 
+[GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
 
 
 ## Run the full workflow
