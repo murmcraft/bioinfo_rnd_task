@@ -8,13 +8,16 @@ This pipeline implements the following:
 - variant calling summary report
 
 The workflow is tested with a small WGS dataset:
+
 NA12878 aligned to GRCh37 reference genome.
+
 The raw data was obtained from [GATK test data sets](https://console.cloud.google.com/storage/browser/gatk-test-data).
 
 ## Build and run the Docker image
 
-The Dockerfile is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/)).
-It includes the tools required for the pipeline:
+The Dockerfile is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/).
+
+It includes GATK4 and additional tools required for the pipeline:
 - GATK v4.1.0.0
 - SAMtools v1.9
 - BCFtools v1.9
@@ -49,12 +52,14 @@ validate-sam-file.sh \
     NA12878.bam \
     validate
 ```
-where: 
-- `NA12878.bam` is input BAM filename and
-- `validate` is output filename prefix.
+where `NA12878.bam` is input BAM filename and
+
+`validate` is output filename prefix.
 
 In case errors where found, the script procudes `.summary`and `.verbose` files, 
+
 which indicate the errors and points their sources. 
+
 [GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
 
 
@@ -65,6 +70,7 @@ To run the entire workflow, use the script with wanted inputs:
 *********UPDATE HERE
 
 The full workflow will run each step described below. 
+
 Wanted steps can also be run separately according to the command examples.
 
 ## Read and alignment quality
@@ -79,9 +85,5 @@ collect-alignment-metrics.sh \
     Homo_sapiens.GRCh37.dna.primary_assembly.fa \
     250
 ```
-where: 
-- `NA12878.bam` is input BAM filename,
-- `alignment-metrics` is output filename prefix,
-- `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and
-- `250` is the average read length.
+where `NA12878.bam` is input BAM filename, `alignment-metrics` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `250` is the average read length.
 
