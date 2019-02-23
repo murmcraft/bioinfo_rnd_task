@@ -1,4 +1,4 @@
-# Tiny pipeline for simple variant calling and quality control
+# A tiny pipeline for simple variant calling and quality control
 
 This pipeline implements the following:
 - input as BAM file
@@ -51,9 +51,7 @@ validate-sam-file.sh \
 ```
 where `NA12878.bam` is input BAM filename and `validate` is output filename prefix.
 
-In case errors where found, the script procudes `.summary`and `.verbose` files,   
-which indicate the errors and points their sources. 
-
+In case errors where found, the script procudes `.summary`and `.verbose` files, which indicate the errors and point their sources.  
 [GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
 
 
