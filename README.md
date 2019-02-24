@@ -58,18 +58,26 @@ In case errors where found, the script procudes
 [GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
 
 #### Reference files
-The required files are
-- reference genome fasta with dictionary
+The required files are:
+- reference genome fasta with dictionary and index
 - known variant sites
 - known indels
 
-Depending on to which reference genome your reads are aligned, download corresponding reference files.
-Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from different sources:
+Depending on to which reference genome your reads are aligned, download corresponding reference files.  
+Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from indicated sources:
 ```
 wget ftp://ftp.ensembl.org/pub/grch37/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz .
-gunzip Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
 wget ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/VCF/common_all_20180423.vcf* .
-wget ftp://ftp.broadinstitute.org/bundle/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz* .
+wget --user='gsapubftp-anonymous' --password='' \
+    ftp://ftp.broadinstitute.org/bundle/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz* .
+```
+Unzip and process the files as needed:
+```
+gunzip Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
+gunzip Mills_and_1000G_gold_standard.indels.b37.vcf.gz
+bcftools view Mills_and_1000G_gold_standard.indels.b37.vcf \
+    -Oz -o Mills_and_1000G_gold_standard.indels.b37.vcf.gz
+bcftools index -t Mills_and_1000G_gold_standard.indels.b37.vcf.gz
 ```
 To generate the fasta file dictionary, use:
 ```
@@ -77,7 +85,10 @@ gatk CreateSequenceDictionary \
     -R Homo_sapiens.GRCh37.dna.primary_assembly.fa
     -O Homo_sapiens.GRCh37.dna.primary_assembly.dict
 ```
-
+To generate the fasta file index, use:
+```
+samtools faidx Homo_sapiens.GRCh37.dna.primary_assembly.fa
+```
 
 ## Run the full workflow
 
