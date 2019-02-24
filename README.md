@@ -8,7 +8,7 @@ This pipeline implements the following:
 - variant calling summary report
 
 The workflow is tested with a small WGS dataset - NA12878 aligned to GRCh37 reference genome.  
-The raw data was obtained from [GATK test data sets](https://console.cloud.google.com/storage/browser/gatk-test-data) and aligned to the GRCh37 reference genome with `bwa mem` according to GATK workflows.
+The raw data was obtained from [GATK test data sets](https://console.cloud.google.com/storage/browser/gatk-test-data) and aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl).
 
 ## Build and run the Docker image
 
@@ -37,12 +37,12 @@ docker run -ti \
 ## Input file requirements and preparations
 
 #### BAM file
-The input BAM file should be:
+The input BAM file should *at least* be:
 - paired-end WGS data,
 - trimmed or clipped for adapters,
 - sorted,
 - indexed, and
-- contain read group according to GATK requirements.
+- contain read group(s) according to GATK requirements.
 
 To confirm that your data indeed is in suitable format, 
 **run the validation and fix errors**, if necessary:
@@ -111,20 +111,32 @@ mark-duplicates.sh NA12878.bam NA12878_markdups
 ```
 where `NA12878.bam` is input BAM filename and `NA12878_markdups` is prefix for output `.bam` and `.txt` files.
 
+
 ### Base quality score recalibration
 
 Base quality score recalibration is meant to detect systematic errors in the base calling quality scores made by the sequencer. The quality scores are adjusted with the help of known variants. 
 
+```
+base-quality-recalibration.sh \
+    NA12878_markdups.bam \
+    NA12878_bqsr \
+    Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    common_all_20180423.vcf.gz \
+    Mills_and_1000G_gold_standard.indels.b37.vcf.gz
+```
+where `NA12878.bam` is input BAM filename, `NA12878_bqsr` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `common_all_20180423.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
 
+### Alignment quality
 
 Collect various alignment quality metrics:
 ```
 collect-alignment-metrics.sh \
-    NA12878.bam \
-    alignment-metrics \
+    NA12878_bqsr.bam \
+    NA12878_quality \
     Homo_sapiens.GRCh37.dna.primary_assembly.fa \
     250
 ```
-where `NA12878.bam` is input BAM filename, `alignment-metrics` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `250` is the average read length.
+where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `250` is the average read length.
 
+Generate an alignment quality report with tables and plots:
