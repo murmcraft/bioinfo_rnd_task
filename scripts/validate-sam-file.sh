@@ -1,11 +1,11 @@
 #!/bin/bash
 
+# Preparatory step - File validation
+# The input BAM file must be validated before running the pipeline
+
 # User input variables
 INBAM=$1 # Input .bam filename
 OUT_PREFIX=$2 # Output file prefix
-
-# Preparatory step - File validation
-# The input BAM file must be validated before running the pipeline
 
 # Run Picard ValidateSamFile to diagnose potential issues
 # First see summary
