@@ -34,15 +34,17 @@ docker run -ti \
     bioinfo-rnd-task
 ```
 
-## Input file requirements
+## Input file requirements and preparations
 
+#### BAM file
 The input BAM file should be:
 - paired-end WGS data,
+- trimmed or clipped for adapters,
 - sorted,
 - indexed, and
-- in correct format according to GATK requirements.
+- contain read group according to GATK requirements.
 
-To confirm that your data is indeed in suitable format, 
+To confirm that your data indeed is in suitable format, 
 **run the validation and fix errors**, if necessary:
 ```
 validate-sam-file.sh \
@@ -54,6 +56,27 @@ where `NA12878.bam` is input BAM filename and `validate` is output filename pref
 In case errors where found, the script procudes 
 `.summary`and `.verbose` files, which indicate the errors and point their sources.  
 [GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
+
+#### Reference files
+The required files are
+- reference genome fasta with dictionary
+- known variant sites
+- known indels
+
+Depending on to which reference genome your reads are aligned, download corresponding reference files.
+Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from different sources:
+```
+wget ftp://ftp.ensembl.org/pub/grch37/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz .
+gunzip Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
+wget ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/VCF/common_all_20180423.vcf* .
+wget ftp://ftp.broadinstitute.org/bundle/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz* .
+```
+To generate the fasta file dictionary, use:
+```
+gatk CreateSequenceDictionary \
+    -R Homo_sapiens.GRCh37.dna.primary_assembly.fa
+    -O Homo_sapiens.GRCh37.dna.primary_assembly.dict
+```
 
 
 ## Run the full workflow
@@ -67,11 +90,24 @@ Wanted steps can also be run separately according to the command examples.
 
 
 ## Step-by-step descriptions
-### Read and alignment quality
+### Mark duplicates
+
+It is recommended practice to mark duplicate reads, which are then ignored in variant calling. Duplicates are determined as those reads whose 5' positions are identical. Often the origin of duplicate reads is the PCR during library preparation, but also sequencing may cause optical duplicates.
+
+Run the script to flag duplicate reads and generate a summary metrics file:
+```
+mark-duplicates.sh NA12878.bam NA12878_markdups
+```
+where `NA12878.bam` is input BAM filename and `NA12878_markdups` is prefix for output `.bam` and `.txt` files.
+
+### Base quality score recalibration
+
+Base quality score recalibration is meant to detect systematic errors in the base calling quality scores made by the sequencer. The quality scores are adjusted with the help of known variants. 
 
 
 
-First, collect alignment quality metrics:
+
+Collect various alignment quality metrics:
 ```
 collect-alignment-metrics.sh \
     NA12878.bam \
