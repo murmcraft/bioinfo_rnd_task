@@ -66,10 +66,10 @@ The required files are:
 Depending on to which reference genome your reads are aligned, download corresponding reference files.  
 Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from indicated sources:
 ```
-wget ftp://ftp.ensembl.org/pub/grch37/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz .
-wget ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/VCF/common_all_20180423.vcf* .
+wget ftp://ftp.ensembl.org/pub/grch37/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
+wget ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/VCF/common_all_20180423.vcf*
 wget --user='gsapubftp-anonymous' --password='' \
-    ftp://ftp.broadinstitute.org/bundle/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz* .
+    ftp://ftp.broadinstitute.org/bundle/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz*
 ```
 Unzip and process the files as needed:
 ```
