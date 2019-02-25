@@ -29,3 +29,13 @@ gatk QualityScoreDistribution \
     --CHART ${OUT_PREFIX}_qscore.pdf \
     --ALIGNED_READS_ONLY true \
     --PF_READS_ONLY true
+
+# Subset the reports into plottable formats
+cat ${OUT_PREFIX}_samtools.metrics | \
+    grep "^SN" | cut -f1-3 > ${OUT_PREFIX}_overall.stats
+cat ${OUT_PREFIX}_samtools.metrics | \
+    grep "^GCC\|^FBC\|^LBC" | cut -f1-6 > ${OUT_PREFIX}_acgt.stats
+cat ${OUT_PREFIX}_samtools.metrics | \
+    grep "^ID" | cut -f1-4 > ${OUT_PREFIX}_indeldistribution.stats
+cat ${OUT_PREFIX}_samtools.metrics | \
+    grep "^COV" | cut -f1,3-4 > ${OUT_PREFIX}_coverage.stats
