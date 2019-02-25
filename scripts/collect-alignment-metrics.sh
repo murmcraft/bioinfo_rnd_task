@@ -6,8 +6,7 @@
 INBAM=$1 # Input .bam filename
 OUT_PREFIX=$2 # Output file prefix
 FASTA=$3 # Reference genome .fasta file
-READ_LENGTH=$4 # Average read length (bp)
-QUALITIES=$5 # false if BaseRecalibration is applied and should use OQ tag, otherwise true
+SAMPLE_SIZE=$4 # As percentage for downsampling a huge input file
 
 # Collect samtools stats table
 samtools stats \
@@ -15,6 +14,11 @@ samtools stats \
     --remove-dups \
     ${INBAM} \
     > ${OUT_PREFIX}_samtools.metrics
+
+# Mapping quality distribution for a subsample
+samtools view -s ${SAMPLE_SIZE} | \
+    cut -f5 \
+    > ${OUT_PREFIX}_mapq.stats
 
 # Picard's CollectAlignmentSummaryMetrics
 gatk CollectAlignmentSummaryMetrics \
