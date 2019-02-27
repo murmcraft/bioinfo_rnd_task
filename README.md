@@ -137,6 +137,6 @@ collect-alignment-metrics.sh \
     Homo_sapiens.GRCh37.dna.primary_assembly.fa \
     1
 ```
-where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `1` is the subsampling proportion (here 1, because the test dataset is extremely small).
+where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `1` is the subsampling proportion (here 1, because the test dataset is extremely small, but one should choose a small value e.g. 0.25 depending on the size of the input data).
 
 Generate an alignment quality report with tables and plots:
