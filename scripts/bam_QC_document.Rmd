@@ -1,0 +1,165 @@
+---
+ title: "BAM quality metrics report"
+ output: html_document
+---
+
+```{r, include = FALSE}
+# Required libraries
+library(ggplot2)
+library(RColorBrewer)
+library(reshape2)
+
+# Source functions
+source("plottheme.R")
+source("plot_functions.R")
+
+## INPUT FILES ##
+filetag <- "*.stats"
+statlist <- lapply(Sys.glob(filetag), function(x) {
+  read.delim(x, header = F, stringsAsFactors = F)
+  })
+alnmetrics <- read.delim(Sys.glob("*_alignment.metrics"), header = T, 
+                         stringsAsFactors = F, comment.char = '#')
+
+## SUMMARY TABLE ##
+# Generate a prettier output table
+alnmetrics <- alnmetrics[,1:24]
+alnmetrics[,c(4,7,18,20,22:24)] <- round(100 * alnmetrics[,c(4,7,18,20,22:24)],2)
+alnmetrics[,c(13:15)] <- round(alnmetrics[c(13:15)], 5)
+colnames <- c("Category", "Total reads", "PF Reads (pass Illumina filters)",
+              "PF Reads (%)", "PF noise reads", "PF aligned reads",
+              "PF aligned reads (%)", "PF aligned bases",
+              "PF HQ (MAPQ>20) aligned reads", "PF HQ aligned bases",
+              "PF HQ aligned bases (Q20)", "PF HQ median mismatches",
+              "PF mismatch rate","PF HQ error rate", "PF indel rate", 
+              "Mean read length", "Reads aligned in pairs",
+              "Reads aligned in pairs (%)", "PF reads in improper pairs",
+              "PF reads in improper pairs (%)", "Bad cycles",
+              "Strand balance (%)", "Chimeras (%)", "Adapters (%)")
+# Keep the rows as characters to preserve integers and roundings
+alnmetrics <- rbind(as.character(alnmetrics[1,]), as.character(alnmetrics[2,]),
+                    as.character(alnmetrics[3,]))
+colnames(alnmetrics) <- colnames
+alnmetrics <- format(setNames(data.frame(t(alnmetrics[,-1])), 
+                                   alnmetrics[,1]), scientific = FALSE)
+# Reorder and rename the columns
+summarytable <- data.frame(Total = alnmetrics$PAIR,
+                           First_of_pair = alnmetrics$FIRST_OF_PAIR,
+                           Second_of_pair = alnmetrics$SECOND_OF_PAIR)
+```
+
+```{r, include = FALSE, message = FALSE, warning = FALSE}
+## PLOTTING ##
+# Separate plottable data according to their type
+mapq <- statlist[[1]]
+statlist <- statlist[2:4]
+
+# Modifictions to plotatble format
+colnames(statlist[[1]]) <- c("type", "x", "baseA", "baseC", "baseG", "baseT")
+statlist[[1]]$type <- factor(statlist[[1]]$type, levels = c("GCC", "FBC", "LBC"))
+colnames(statlist[[2]]) <- c("type", "x", "coverage")
+colnames(statlist[[3]]) <- c("type", "x", "insertions", "deletions")
+
+# Convert wide to long format for easier plotting
+plotdata <- lapply(statlist, function(x) {
+  melt(x, id.vars=c("type", "x"))
+})
+
+# ACGT content per cycle
+df <- plotdata[[1]]
+xlim <- c(0,250)
+ylim <- c(0,100)
+title <- "A,C,G,T content per cycle"
+xlab <- "Cycle"
+ylab <- "Base content (%)"
+cols <- c(brewer.pal(12, "Paired")[c(4,2)], "black", brewer.pal(12, "Paired")[c(6)])
+labels <- c("A", "C", "G", "T")
+acgt <- lineplot(df, xlim, ylim, title, xlab, ylab, cols, labels) +
+  facet_wrap(~type, ncol = 3, labeller = as_labeller(c("GCC" = "All reads",
+                                                       "FBC" = "First in pair",
+                                                       "LBC" = "Second in pair"))) +
+  theme(legend.justification = "right") 
+
+# Coverage distribution
+df <- plotdata[[2]]
+if(max(df$x) > 50) {
+  addition <- df[1:50,]
+} else {
+  addition <- df[1:round(max(df$x)/2, 0),]
+}
+addition$variable <- "coverage_xlim"
+df <- rbind(df, addition)
+xaxis <- scale_x_continuous(expand = c(0,0))
+yaxis <- scale_y_continuous(expand = c(0,0))
+title <- "Coverage distribution"
+xlab <- "Coverage (X)"
+ylab <- "Frequency"
+cols <- rep(brewer.pal(9, "Greys")[6], 2)
+labels <- c("")
+coverage <- barplot(df, xaxis, yaxis, title, xlab, ylab, cols, labels) + 
+  theme(legend.position = "none") +
+  facet_wrap(~variable, ncol = 2, scales = "free",
+             labeller = as_labeller(c("coverage" = "Coverage",
+                                      "coverage_xlim" = "Coverage (limited x-axis)")))
+
+# MAPQ distribution
+df <- mapq
+colnames(df) <- "x"
+xaxis <- scale_x_continuous()
+yaxis <- scale_x_continuous()
+title <- "Mapping quality distribution"
+xlab <- "MAPQ"
+ylab <- "Frequency"
+cols <- brewer.pal(9, "Greys")[6]
+labels <- c("")
+bins <- 60
+mapqplot <- histogram(df, xaxis, yaxis, title, xlab, ylab, cols, labels, bins) + 
+  theme(legend.position = "none")
+
+# Indel length distributions
+df <- plotdata[[3]]
+xaxis <- scale_x_continuous(expand = c(0,0))
+yaxis <- scale_y_continuous(expand = c(0,0))
+title <- "Indel length distribution"
+xlab <- "Length (bases)"
+ylab <- "Frequency"
+cols <- c(brewer.pal(9, "Greys")[5], brewer.pal(9, "Greys")[7])
+labels <- c("")
+indel_length <- barplot(df, xaxis, yaxis, title, xlab, ylab, cols, labels) + 
+  theme(legend.position = "none") +
+  facet_wrap(~variable, ncol = 2, scales = "free_x",
+             labeller = as_labeller(c("insertions" = "Insertions",
+                                      "deletions" = "Deletions")))
+```
+
+### BAM quality metrics summary for `r sub("_.*", "", list.files(pattern = ".stats")[1])` on `r Sys.Date()`
+
+
+```{r, echo = FALSE}
+# Print with rownames as row titles
+  kable_styling(kable(summarytable), bootstrap_options = "striped", full_width = F)
+```
+
+
+### A, C, G and T content per cycle for all reads and separately for first and second in pair
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+acgt
+```
+
+
+### Coverage histograms 
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+coverage
+```
+
+
+### Mapping quality distribution 
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+mapqplot
+```
+
+
+### Indel lengths 
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+indel_length
+```
