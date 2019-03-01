@@ -8,6 +8,12 @@ OUT_PREFIX=$2 # Output file prefix
 FASTA=$3 # Reference genome .fasta file
 SAMPLE_SIZE=$4 # As percentage for downsampling a huge input file
 
+# Create an output directory
+DIR=alignment-quality-metrics 
+rm -rf $DIR 
+mkdir -p $DIR 
+cd $DIR
+
 # Collect samtools stats table
 samtools stats \
     -r ${FASTA} \
@@ -46,4 +52,4 @@ cat ${OUT_PREFIX}_samtools.metrics | \
 
 # Generate a HTML report of the quality metrics
 file_prefix=${INBAM%.bam}
-Rscript generate_bam_QC_document.R ${file_prefix}
+Rscript /scripts/generate_bam_QC_document.R ${file_prefix}

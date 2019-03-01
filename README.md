@@ -66,6 +66,8 @@ The required files are:
 Depending on to which reference genome your reads are aligned, download corresponding reference files.  
 Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from indicated sources:
 ```
+mkdir -p reference-data
+cd reference-data
 wget ftp://ftp.ensembl.org/pub/grch37/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
 wget ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/VCF/common_all_20180423.vcf*
 wget --user='gsapubftp-anonymous' --password='' \
@@ -90,26 +92,35 @@ To generate the fasta file index, use:
 samtools faidx Homo_sapiens.GRCh37.dna.primary_assembly.fa
 ```
 
-## Run the full workflow
+## Run the complete workflow
 
-To run the entire workflow, use the script with wanted inputs:
+To run the complete workflow, use the script with wanted inputs:
 
 *********UPDATE HERE
 
-The full workflow will run each step described below.  
-Wanted steps can also be run separately according to the command examples.
+The full workflow will run each step described below. Wanted steps can also be run separately according to the command examples.
 
 
 ## Step-by-step descriptions
+
+First, setup your working directory and ensure your input files are there:
+```
+WKD=/home/
+cd ${WKD}
+```
+
 ### Mark duplicates
 
 It is recommended practice to mark duplicate reads, which are then ignored in variant calling. Duplicates are determined as those reads whose 5' positions are identical. Often the origin of duplicate reads is the PCR during library preparation, but also sequencing may cause optical duplicates.
 
 Run the script to flag duplicate reads and generate a summary metrics file:
 ```
-mark-duplicates.sh NA12878.bam NA12878_markdups
+mark-duplicates.sh \
+    NA12878.bam \
+    NA12878_markdups
+WKD=${WKD}/mark-duplicates/
 ```
-where `NA12878.bam` is input BAM filename and `NA12878_markdups` is prefix for output `.bam` and `.txt` files.
+where `NA12878.bam` is the input BAM filename and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files. 
 
 
 ### Base quality score recalibration
@@ -117,12 +128,13 @@ where `NA12878.bam` is input BAM filename and `NA12878_markdups` is prefix for o
 Base quality score recalibration is meant to detect systematic errors in the base calling quality scores made by the sequencer. The quality scores are adjusted with the help of known variants. 
 
 ```
-base-quality-recalibration.sh \
-    NA12878_markdups.bam \
+base-quality-score-recalibration.sh \
+    ${WKD}/NA12878_markdups.bam \
     NA12878_bqsr \
-    Homo_sapiens.GRCh37.dna.primary_assembly.fa \
-    common_all_20180423.vcf.gz \
-    Mills_and_1000G_gold_standard.indels.b37.vcf.gz
+    /reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    /reference-data/common_all_20180423.vcf.gz \
+    /reference-data/Mills_and_1000G_gold_standard.indels.b37.vcf.gz
+WKD=${WKD}/base-quality-score-recalibration/
 ```
 where `NA12878.bam` is input BAM filename, `NA12878_bqsr` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `common_all_20180423.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
@@ -132,11 +144,16 @@ where `NA12878.bam` is input BAM filename, `NA12878_bqsr` is output filename pre
 Collect various alignment quality metrics:
 ```
 collect-alignment-metrics.sh \
-    NA12878_bqsr.bam \
+    ${WKD}/NA12878_bqsr.bam \
     NA12878_quality \
-    Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    /reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
     1
 ```
 where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `1` is the subsampling proportion (here 1, because the test dataset is extremely small, but one should choose a small value e.g. 0.25 depending on the size of the input data).
 
-Generate an alignment quality report with tables and plots:
+The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` containing BAM quality metrics (currently only summary metrics table, ACGT content per cycle plot, coverage, mapping quality and indel lengths histograms are implemented).
+
+
+### Variant calling
+
+Call variants per chromosome:

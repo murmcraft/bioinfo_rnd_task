@@ -7,6 +7,12 @@
 INBAM=$1 # Input .bam filename
 OUT_PREFIX=$2 # Output file prefix
 
+# Create an output directory
+DIR=mark-duplicates 
+rm -rf $DIR 
+mkdir -p $DIR 
+cd $DIR
+
 # Run Picard MarkDuplicates to add a flag to
 # primary alingments which are duplicates
 gatk MarkDuplicates \

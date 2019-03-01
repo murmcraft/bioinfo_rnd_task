@@ -7,6 +7,12 @@
 INBAM=$1 # Input .bam filename
 OUT_PREFIX=$2 # Output file prefix
 
+# Create an output directory
+DIR=validate-sam-file 
+rm -rf $DIR 
+mkdir -p $DIR 
+cd $DIR
+
 # Run Picard ValidateSamFile to diagnose potential issues
 # First see summary
 gatk ValidateSamFile \
