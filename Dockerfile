@@ -31,6 +31,13 @@ ENV PATH=${PATH}:/tools
 RUN echo "install.packages('rmarkdown', repos='http://cran.us.r-project.org')" | R --no-save
 RUN echo "install.packages('kableExtra', repos='http://cran.us.r-project.org')" | R --no-save
 
+# Copy workflow scripts
+RUN mkdir -p /scripts
+
+COPY scripts/* /scripts/
+RUN chmod +x /scripts/*
+
+ENV PATH=${PATH}:/scripts
 
 # Enter home directory to start working
 WORKDIR /home
