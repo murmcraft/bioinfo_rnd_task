@@ -3,7 +3,8 @@
 FROM broadinstitute/gatk
 
 RUN apt-get update && \
-    apt-get install -y vim git pandoc libcurl4-openssl-dev libxml2-dev
+    apt-get install -y vim git pandoc && \
+    apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev
 
 # HTSlib, SAMtools and BCFtools 
 RUN mkdir -p /tools 
