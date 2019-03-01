@@ -10,8 +10,8 @@ library(RColorBrewer)
 library(reshape2)
 
 # Source functions
-source("plottheme.R")
-source("plot_functions.R")
+source("plot-theme.R")
+source("plot-functions.R")
 
 ## INPUT FILES ##
 filetag <- "*.stats"
