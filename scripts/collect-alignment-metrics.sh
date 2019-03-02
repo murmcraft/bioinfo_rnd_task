@@ -7,6 +7,7 @@ INBAM=$1 # Input .bam filename
 OUT_PREFIX=$2 # Output file prefix
 FASTA=$3 # Reference genome .fasta file
 SAMPLE_SIZE=$4 # As percentage for downsampling a huge input file
+SCRIPTS=$5 # Path to scripts
 
 # Create an output directory
 DIR=alignment-quality-metrics 
@@ -49,5 +50,9 @@ cat ${OUT_PREFIX}_samtools.metrics | \
     grep "^COV" | cut -f1,3-4 > ${OUT_PREFIX}_coverage.stats
 
 # Generate a HTML report of the quality metrics
-file_prefix=${INBAM%.bam}
-Rscript /scripts/generate-bam-QC-document.R ${file_prefix}
+FILE_PREFIX=$(basename ${INBAM%.bam})
+OUTPUT_DIR=$(pwd)
+Rscript ${SCRIPTS}/generate-bam-QC-report.R \
+    ${OUTPUT_DIR} \
+    ${FILE_PREFIX} \
+    ${SCRIPTS}

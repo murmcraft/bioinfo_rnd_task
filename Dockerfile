@@ -3,8 +3,9 @@
 FROM broadinstitute/gatk
 
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y vim git pandoc && \
-    apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev
+    apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev libcairo2-dev
 
 # HTSlib, SAMtools and BCFtools 
 RUN mkdir -p /tools 
@@ -28,6 +29,7 @@ RUN git clone git://github.com/samtools/samtools.git && \
 ENV PATH=${PATH}:/tools
 
 # Install additional R packages
+RUN echo "install.packages('ggplot2', repos='http://cran.us.r-project.org')" | R --no-save
 RUN echo "install.packages('rmarkdown', repos='http://cran.us.r-project.org')" | R --no-save
 RUN echo "install.packages('kableExtra', repos='http://cran.us.r-project.org')" | R --no-save
 

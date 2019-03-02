@@ -145,9 +145,10 @@ collect-alignment-metrics.sh \
     ${WKD}/base-quality-score-recalibration/NA12878_bqsr.bam \
     NA12878_quality \
     /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
-    0.99
+    0.99 \
+    /scripts
 ```
-where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `0.99` is the subsampling proportion (here 1, because the test dataset is extremely small, but one should choose a small value e.g. 0.25 depending on the size of the input data).
+where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `0.99` is the subsampling proportion (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.25 depending on the size of the input data), and `/scripts` is the path to scripts directory.
 
 The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` containing BAM quality metrics (currently only summary metrics table, ACGT content per cycle plot, coverage, mapping quality and indel lengths histograms are implemented).
 

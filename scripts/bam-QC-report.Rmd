@@ -1,25 +1,31 @@
 ---
- title: "BAM quality metrics report"
- output: html_document
+title: "BAM quality metrics report"
+output: html_document
+params: 
+  scripts: /scripts
+  input_dir: /home/alignment-quality-metrics
 ---
 
 ```{r, include = FALSE}
+# Set input data dir as working directory
+setwd(params$input_dir)
+
 # Required libraries
 library(ggplot2)
 library(RColorBrewer)
 library(reshape2)
 
 # Source functions
-source("/scripts/plot-theme.R")
-source("/scripts/plot-functions.R")
+source(paste0(params$scripts, "/plot-theme.R"))
+source(paste0(params$scripts, "/plot-functions.R"))
 
 ## INPUT FILES ##
-filetag <- "*.stats"
-statlist <- lapply(Sys.glob(filetag), function(x) {
-  read.delim(x, header = F, stringsAsFactors = F)
-  })
-alnmetrics <- read.delim(Sys.glob("*_alignment.metrics"), header = T, 
-                         stringsAsFactors = F, comment.char = '#')
+statlist <- lapply(list.files(path = params$input_dir, pattern = "*.stats"), 
+    function(x) {
+        read.delim(x, header = F, stringsAsFactors = F)
+})
+alnmetrics <- read.delim(list.files(path = params$input_dir, pattern = "*_alignment.metrics"), 
+			header = T, stringsAsFactors = F, comment.char = '#')
 
 ## SUMMARY TABLE ##
 # Generate a prettier output table
