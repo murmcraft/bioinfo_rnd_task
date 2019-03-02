@@ -15,7 +15,7 @@ RUN git clone git://github.com/samtools/htslib.git && \
     make && \
     make install 
 
-RUN export BCFTOOLS_PLUGINS=/tools/bcftools/plugins
+ENV BCFTOOLS_PLUGINS=/tools/bcftools/plugins
 
 RUN git clone git://github.com/samtools/samtools.git && \
     cd samtools && \

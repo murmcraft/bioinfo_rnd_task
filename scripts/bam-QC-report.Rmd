@@ -51,8 +51,8 @@ summarytable <- data.frame(Total = alnmetrics$PAIR,
 ```{r, include = FALSE, message = FALSE, warning = FALSE}
 ## PLOTTING ##
 # Separate plottable data according to their type
-mapq <- statlist[[1]]
-statlist <- statlist[2:4]
+mapq <- statlist[[4]]
+statlist <- statlist[1:3]
 
 # Modifictions to plotatble format
 colnames(statlist[[1]]) <- c("type", "x", "baseA", "baseC", "baseG", "baseT")

@@ -4,7 +4,7 @@
 # The input BAM file must be validated before running the pipeline
 
 # User input variables
-INBAM=$1 # Input .bam filename
+INBAM=$1 # Path to input .bam file
 OUT_PREFIX=$2 # Output file prefix
 
 # Create an output directory

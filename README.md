@@ -24,7 +24,7 @@ First, clone the repository and enter the directory.
 
 Build the image:
 ```
-docker build -t bioinfo-rnd-task
+docker build -t bioinfo-rnd-task .
 ```
 
 Then, run it while mounting your input data directory (here `testdata`) to `/home`:
@@ -48,12 +48,12 @@ To confirm that your data indeed is in suitable format,
 **run the validation and fix errors**, if necessary:
 ```
 validate-sam-file.sh \
-    NA12878.bam \
-    validate
+    /home/NA12878.bam \
+    NA12878_validate
 ```
-where `NA12878.bam` is input BAM filename and `validate` is output filename prefix.
+where `/home/NA12878.bam` is path to input BAM file and `NA12878_validate` is output filename prefix.
 
-In case errors where found, the script procudes 
+In case errors were found, the script procudes 
 `.summary`and `.verbose` files, which indicate the errors and point their sources.  
 [GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
 
@@ -116,11 +116,10 @@ It is recommended practice to mark duplicate reads, which are then ignored in va
 Run the script to flag duplicate reads and generate a summary metrics file:
 ```
 mark-duplicates.sh \
-    NA12878.bam \
+    ${WKD}/NA12878.bam \
     NA12878_markdups
-WKD=${WKD}/mark-duplicates/
 ```
-where `NA12878.bam` is the input BAM filename and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files. 
+where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files. 
 
 
 ### Base quality score recalibration
@@ -129,14 +128,13 @@ Base quality score recalibration is meant to detect systematic errors in the bas
 
 ```
 base-quality-score-recalibration.sh \
-    ${WKD}/NA12878_markdups.bam \
+    ${WKD}/mark-duplicates/NA12878_markdups.bam \
     NA12878_bqsr \
-    /reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
-    /reference-data/common_all_20180423.vcf.gz \
-    /reference-data/Mills_and_1000G_gold_standard.indels.b37.vcf.gz
-WKD=${WKD}/base-quality-score-recalibration/
+    /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    /home/reference-data/common_all_20180423.vcf.gz \
+    /home/reference-data/Mills_and_1000G_gold_standard.indels.b37.vcf.gz
 ```
-where `NA12878.bam` is input BAM filename, `NA12878_bqsr` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `common_all_20180423.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
+where `${WKD}/NA12878.bam` is the path to input BAM file, `NA12878_bqsr` is a output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `common_all_20180423.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
 
 ### Alignment quality
@@ -144,16 +142,16 @@ where `NA12878.bam` is input BAM filename, `NA12878_bqsr` is output filename pre
 Collect various alignment quality metrics:
 ```
 collect-alignment-metrics.sh \
-    ${WKD}/NA12878_bqsr.bam \
+    ${WKD}/base-quality-score-recalibration/NA12878_bqsr.bam \
     NA12878_quality \
-    /reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
-    1
+    /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    0.99
 ```
-where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `1` is the subsampling proportion (here 1, because the test dataset is extremely small, but one should choose a small value e.g. 0.25 depending on the size of the input data).
+where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `0.99` is the subsampling proportion (here 1, because the test dataset is extremely small, but one should choose a small value e.g. 0.25 depending on the size of the input data).
 
 The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` containing BAM quality metrics (currently only summary metrics table, ACGT content per cycle plot, coverage, mapping quality and indel lengths histograms are implemented).
 
 
 ### Variant calling
 
-Call variants per chromosome:
+Call variants intervals:

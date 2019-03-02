@@ -22,7 +22,7 @@ samtools stats \
     > ${OUT_PREFIX}_samtools.metrics
 
 # Mapping quality distribution for a subsample
-samtools view -s ${SAMPLE_SIZE} | \
+samtools view -s ${SAMPLE_SIZE} ${INBAM} | \
     cut -f5 \
     > ${OUT_PREFIX}_mapq.stats
 
@@ -42,8 +42,6 @@ gatk QualityScoreDistribution \
 
 # Subset the reports into plottable formats
 cat ${OUT_PREFIX}_samtools.metrics | \
-    grep "^SN" | cut -f1-3 > ${OUT_PREFIX}_overall.stats
-cat ${OUT_PREFIX}_samtools.metrics | \
     grep "^GCC\|^FBC\|^LBC" | cut -f1-6 > ${OUT_PREFIX}_acgt.stats
 cat ${OUT_PREFIX}_samtools.metrics | \
     grep "^ID" | cut -f1-4 > ${OUT_PREFIX}_indeldistribution.stats
@@ -52,4 +50,4 @@ cat ${OUT_PREFIX}_samtools.metrics | \
 
 # Generate a HTML report of the quality metrics
 file_prefix=${INBAM%.bam}
-Rscript /scripts/generate_bam_QC_document.R ${file_prefix}
+Rscript /scripts/generate-bam-QC-document.R ${file_prefix}
