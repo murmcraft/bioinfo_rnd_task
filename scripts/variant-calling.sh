@@ -17,11 +17,27 @@ mkdir -p $DIR
 cd $DIR
 
 # Variant calling per interval
+CPU_COUNT=4
+PID_COUNTER=0
 cat ${INTERVAL_LIST} | \
 while read -r INTERVAL; do
-    gatk HaplotypeCaller \
+    PID_COUNTER=$((${PID_COUNTER} + 1))
+    (gatk HaplotypeCaller \
         -I ${INBAM} \
         -O ${OUT_PREFIX}_${INTERVAL}.vcf.gz \
         -R ${FASTA} \
-        -L ${INTERVAL}
+        -L ${INTERVAL};
+        if [[ $? -ne 0 ]]; then 
+            echo "${INTERVAL}" >> interval.fail
+        fi
+    ) &
+    if [[ ${PID_COUNTER} -gt ${CPU_COUNT} ]]; then
+        wait
+        PID_COUNTER=0
+    fi
 done
+wait
+
+if [[ -s interval.fail ]]; then
+    exit 1
+fi

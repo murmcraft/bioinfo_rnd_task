@@ -155,4 +155,13 @@ The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` con
 
 ### Variant calling
 
-Call variants intervals:
+To speed up the variant calling, it is good to parallelize the process per genomic interval. These are defined by GATK as a couple of non-overlapping regions per each chromosome excluding non-interesting or difficult regions such as centromeres.
+
+Call variants per genomic intervals:
+```
+variant-calling.sh \
+    ${WKD}/base-quality-score-recalibration/NA12878_bqsr.bam \
+    NA12878 \
+    /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list
+```
