@@ -51,6 +51,8 @@ fi
 ls *.vcf.gz | sort -V > interval_vcfs.list
 bcftools concat -f interval_vcfs.list \
     -Oz -o ${OUT_PREFIX}.vcf.gz
+# Create index
+bcftools index -t ${OUT_PREFIX}.vcf.gz
 
 # Clean up
 rm ${OUT_PREFIX}_*:*.vcf.gz*
