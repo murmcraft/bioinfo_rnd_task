@@ -155,7 +155,9 @@ The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` con
 
 ### Variant calling
 
-To speed up the variant calling, it is good to parallelize the process per genomic interval. These are defined by GATK as a couple of non-overlapping regions per each chromosome excluding non-interesting or difficult regions such as centromeres.
+GATK HaplotypeCaller simultaneously calls SNPs and indels and does local *de novo* assembly at the active region increasing the accuracy of the calls. To speed up the variant calling, it is good to parallelize the process per genomic interval. These are defined by GATK as a handful of non-overlapping regions per each chromosome excluding non-interesting or difficult regions such as centromeres (in total 103 intervals).  
+
+Here, due to the tiny example run on a laptop (8 CPUs), the parallelization is hard-coded to 2 simultaneous processes, where GATK by default uses 4 threads for each process. For a real data run for instance on a cluster, all 103 jobs could be simultaneously submitted to a workload manager. 
 
 Call variants per genomic intervals:
 ```
@@ -165,3 +167,4 @@ variant-calling.sh \
     /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
     /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list
 ```
+
