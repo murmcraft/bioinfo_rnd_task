@@ -34,6 +34,12 @@ docker run -ti \
     bioinfo-rnd-task
 ```
 
+First, setup your working directory and ensure your input files are there:
+```
+WKD=/home/
+ls ${WKD}
+```
+
 ## Input file requirements and preparations
 
 #### BAM file
@@ -48,7 +54,7 @@ To confirm that your data indeed is in suitable format,
 **run the validation and fix errors**, if necessary:
 ```
 validate-sam-file.sh \
-    /home/NA12878.bam \
+    ${WKD}/NA12878.bam \
     NA12878_validate
 ```
 where `/home/NA12878.bam` is path to input BAM file and `NA12878_validate` is output filename prefix.
@@ -59,9 +65,11 @@ In case errors were found, the script procudes
 
 #### Reference files
 The required files are:
-- reference genome fasta with dictionary and index
-- known variant sites
-- known indels
+- reference genome fasta with dictionary and index,
+- known variant sites,
+- known indels,
+- truth datasets, and 
+- WGS interval list
 
 Depending on to which reference genome your reads are aligned, download corresponding reference files.  
 Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from indicated sources:
@@ -69,17 +77,33 @@ Here, the test data is aligned to GRCh37 reference genome and the corresponding 
 mkdir -p reference-data
 cd reference-data
 wget ftp://ftp.ensembl.org/pub/grch37/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
-wget ftp://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh37p13/VCF/common_all_20180423.vcf*
+wget --user='gsapubftp-anonymous' --password='' \
+    ftp://ftp.broadinstitute.org/bundle/b37/dbsnp_138.b37.excluding_sites_after_129.vcf.gz*
 wget --user='gsapubftp-anonymous' --password='' \
     ftp://ftp.broadinstitute.org/bundle/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz*
+wget --user='gsapubftp-anonymous' --password='' \
+    ftp://ftp.broadinstitute.org/bundle/b37/1000G_omni2.5.b37.vcf.gz*
+wget --user='gsapubftp-anonymous' --password='' \
+    ftp://ftp.broadinstitute.org/bundle/b37/1000G_phase3_v4_20130502.sites.vcf.gz*
 ```
-Unzip and process the files as needed:
+Unzip, BGZF compress and index the files:
 ```
 gunzip Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
+gunzip dbsnp_138.b37.excluding_sites_after_129.vcf.gz
 gunzip Mills_and_1000G_gold_standard.indels.b37.vcf.gz
+gunzip 1000G_omni2.5.b37.vcf.gz
+gunzip 1000G_phase3_v4_20130502.sites.vcf.gz
+bcftools view dbsnp_138.b37.excluding_sites_after_129.vcf \
+    -Oz -o dbsnp_138.b37.excluding_sites_after_129.vcf.gz
+bcftools index -t dbsnp_138.b37.excluding_sites_after_129.vcf.gz
 bcftools view Mills_and_1000G_gold_standard.indels.b37.vcf \
     -Oz -o Mills_and_1000G_gold_standard.indels.b37.vcf.gz
 bcftools index -t Mills_and_1000G_gold_standard.indels.b37.vcf.gz
+bcftools view 1000G_omni2.5.b37.vcf -Oz -o 1000G_omni2.5.b37.vcf.gz
+bcftools index -t 1000G_omni2.5.b37.vcf.gz
+bcftools view 1000G_phase3_v4_20130502.sites.vcf \
+    -Oz -o 1000G_phase3_v4_20130502.sites.vcf.gz
+bcftools index -t 1000G_phase3_v4_20130502.sites.vcf.gz
 ```
 To generate the fasta file dictionary, use:
 ```
@@ -91,6 +115,8 @@ To generate the fasta file index, use:
 ```
 samtools faidx Homo_sapiens.GRCh37.dna.primary_assembly.fa
 ```
+Download the WGS interval list manually from [GATK Google Cloud bucket](https://console.cloud.google.com/storage/browser/gatk-test-data/intervals) and place it to the reference-data directory
+- `b37_wgs_consolidated_calling_intervals.list`
 
 ## Run the complete workflow
 
@@ -102,12 +128,6 @@ The full workflow will run each step described below. Wanted steps can also be r
 
 
 ## Step-by-step descriptions
-
-First, setup your working directory and ensure your input files are there:
-```
-WKD=/home/
-cd ${WKD}
-```
 
 ### Mark duplicates
 
@@ -155,9 +175,9 @@ The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` con
 
 ### Variant calling
 
-GATK HaplotypeCaller simultaneously calls SNPs and indels and does local *de novo* assembly at the active region increasing the accuracy of the calls. To speed up the variant calling, it is good to parallelize the process per genomic interval. These are defined by GATK as a handful of non-overlapping regions per each chromosome excluding non-interesting or difficult regions such as centromeres (in total 103 intervals).  
+GATK HaplotypeCaller simultaneously calls SNPs and indels and does local *de novo* assembly at the active region increasing the accuracy of the calls. To speed up the variant calling, it is good to parallelize the process per genomic interval. These are defined by GATK as a handful of non-overlapping regions per each chromosome excluding non-interesting or difficult regions such as centromeres (in total 103 intervals of autosomal and X chromosomes).  
 
-Here, due to the tiny example run on a laptop (8 CPUs), the parallelization is hard-coded to 2 simultaneous processes, where GATK by default uses 4 threads for each process. For a real data run for instance on a cluster, all 103 jobs could be simultaneously submitted to a workload manager. 
+Here, due to the tiny example run on a laptop (8 logical cores), the parallelization is hard-coded to 2 simultaneous processes, where GATK by default uses 4 threads for each process. For a real data run for instance on a cluster, all 103 jobs could be simultaneously submitted to a workload manager. 
 
 Call variants per genomic intervals:
 ```
