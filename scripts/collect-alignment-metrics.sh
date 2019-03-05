@@ -6,7 +6,7 @@
 INBAM=$1 # Input .bam filename
 OUT_PREFIX=$2 # Output file prefix
 FASTA=$3 # Reference genome .fasta file
-SAMPLE_SIZE=$4 # As percentage for downsampling a huge input file
+SAMPLE_SIZE=$4 # As fraction for downsampling a huge input file
 SCRIPTS=$5 # Path to scripts
 
 # Create an output directory
