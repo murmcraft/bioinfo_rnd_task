@@ -151,10 +151,10 @@ base-quality-score-recalibration.sh \
     ${WKD}/mark-duplicates/NA12878_markdups.bam \
     NA12878_bqsr \
     /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
-    /home/reference-data/common_all_20180423.vcf.gz \
+    /home/reference-data/dbsnp_138.b37.excluding_sites_after_129.vcf.gz \
     /home/reference-data/Mills_and_1000G_gold_standard.indels.b37.vcf.gz
 ```
-where `${WKD}/NA12878.bam` is the path to input BAM file, `NA12878_bqsr` is a output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `common_all_20180423.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
+where `${WKD}/NA12878.bam` is the path to input BAM file, `NA12878_bqsr` is a output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
 
 ### Alignment quality
