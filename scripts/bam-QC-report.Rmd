@@ -4,6 +4,7 @@ output: html_document
 params: 
   scripts: /scripts
   input_dir: /home/alignment-quality-metrics
+  dataset: NA12878
 ---
 
 ```{r, include = FALSE}
@@ -138,7 +139,7 @@ indel_length <- barplot(df, xaxis, yaxis, title, xlab, ylab, cols, labels) +
                                       "deletions" = "Deletions")))
 ```
 
-### BAM quality metrics summary for `r sub("_.*", "", list.files(pattern = ".stats")[1])` on `r Sys.Date()`
+### BAM quality metrics summary for `r params$dataset` on `r Sys.Date()`
 
 
 ```{r, echo = FALSE}
