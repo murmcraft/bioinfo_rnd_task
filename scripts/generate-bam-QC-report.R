@@ -12,4 +12,5 @@ outfile <- paste0(output_dir, "/", filename, ".",
 render(input = paste0(scripts, "/bam-QC-report.Rmd"), 
        output_file = outfile,
        params = list(scripts = scripts, 
-       	input_dir = output_dir))
+       	input_dir = output_dir, 
+       	dataset = filename))
