@@ -188,3 +188,13 @@ variant-calling.sh \
     /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list
 ```
 
+### Variant filtering and quality metrics
+Here, due to the tiny example dataset, only hard-coded variant filtering thresholds are used instead of for instance GATK Variant Quality Score Recalibration. 
+
+```
+variant-filtering.sh \
+    ${WKD}/variant-calling/NA12878.vcf.gz \
+    NA12878 \
+    /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    /home/reference-data/dbsnp_138.b37.excluding_sites_after_129.vcf.gz
+```
