@@ -25,7 +25,7 @@ gatk SelectVariants \
 
 gatk VariantFiltration \
     -V ${OUT_PREFIX}_SNPs.vcf.gz \
-    -O ${OUT_PREFIX}_SNPs_filters.vcf.gz \
+    -O ${OUT_PREFIX}_SNPs_gatkfilters.vcf.gz \
     -R ${FASTA} \
     --filter-name "DP" --filter-expression "DP < 8" \
     --filter-name "QUAL" --filter-expression "QUAL < 40.0" \
@@ -37,6 +37,12 @@ gatk VariantFiltration \
     --filter-name "ReadPosRankSum" --filter-expression "ReadPosRankSum < -2.0" \
     --genotype-filter-name "GQ" --genotype-filter-expression "GQ < 60" 
 
+# Add GQ filter also to FILTER column
+bcftools filter -e 'FMT/GQ < 60' --soft-filter GQ \
+    ${OUT_PREFIX}_SNPs_gatkfilters.vcf.gz \
+    -Oz -o ${OUT_PREFIX}_SNPs_filters.vcf.gz
+bcftools index -t ${OUT_PREFIX}_SNPs_filters.vcf.gz
+
 # Run GATK default hard threholds for INDELs
 gatk SelectVariants \
     -V ${INVCF} \
@@ -46,7 +52,7 @@ gatk SelectVariants \
 
 gatk VariantFiltration \
     -V ${OUT_PREFIX}_INDELs.vcf.gz \
-    -O ${OUT_PREFIX}_INDELs_filters.vcf.gz \
+    -O ${OUT_PREFIX}_INDELs_gatkfilters.vcf.gz \
     -R ${FASTA} \
     --filter-name "DP" --filter-expression "DP < 10" \
     --filter-name "QUAL" --filter-expression "QUAL < 50.0" \
@@ -57,6 +63,12 @@ gatk VariantFiltration \
     --filter-name "MQRankSum" --filter-expression "MQRankSum < -2.0" \
     --filter-name "ReadPosRankSum" --filter-expression "ReadPosRankSum < -2.0" \
     --genotype-filter-name "GQ" --genotype-filter-expression "GQ < 60"
+
+# Add GQ filter also to FILTER column
+bcftools filter -e 'FMT/GQ < 60' --soft-filter GQ \
+    ${OUT_PREFIX}_INDELs_gatkfilters.vcf.gz \
+    -Oz -o ${OUT_PREFIX}_INDELs_filters.vcf.gz
+bcftools index -t ${OUT_PREFIX}_INDELs_filters.vcf.gz
 
 # Merge files together into a single VCF
 bcftools concat --allow-overlaps \
@@ -81,6 +93,6 @@ gatk VariantsToTable \
     -F EVENTLENGTH -F MULTI-ALLELIC -F TRANSITION \
     -F DP -F QD -F FS -F MQ -F SOR \
     -F BaseQRankSum -F MQRankSum -F ReadPosRankSum \
-    -GF GQ -GF DP \
+    -GF GQ \
     --show-filtered true \
     --split-multi-allelic true
