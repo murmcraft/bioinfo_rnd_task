@@ -30,6 +30,7 @@ ENV PATH=${PATH}:/tools
 
 # Install additional R packages
 RUN echo "install.packages('ggplot2', repos='http://cran.us.r-project.org')" | R --no-save
+RUN echo "install.packages('data.table', repos='http://cran.us.r-project.org')" | R --no-save
 RUN echo "install.packages('rmarkdown', repos='http://cran.us.r-project.org')" | R --no-save
 RUN echo "install.packages('kableExtra', repos='http://cran.us.r-project.org')" | R --no-save
 

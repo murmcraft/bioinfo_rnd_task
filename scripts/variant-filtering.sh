@@ -25,22 +25,17 @@ gatk SelectVariants \
 
 gatk VariantFiltration \
     -V ${OUT_PREFIX}_SNPs.vcf.gz \
-    -O ${OUT_PREFIX}_SNPs_gatkfilters.vcf.gz \
+    -O ${OUT_PREFIX}_SNPs_filters.vcf.gz \
     -R ${FASTA} \
-    --filter-name "DP" --filter-expression "DP < 10" \
-    --filter-name "QUAL" --filter-expression "QUAL < 50.0" \
-    --filter-name "QD" --filter-expression "QD < 5.0" \
-    --filter-name "MQ" --filter-expression "MQ < 50.0" \
-    --filter-name "FS" --filter-expression "FS > 15.0" \
-    --filter-name "SOR" --filter-expression "SOR > 3.0" \
-    --filter-name "MQRankSum" --filter-expression "MQRankSum < -2.0" \
-    --filter-name "ReadPosRankSum" --filter-expression "ReadPosRankSum < -2.0" 
-
-# Add filtering based on genotype quality
-bcftools filter -e 'FMT/GQ < 90' --soft-filter GQ \
-    ${OUT_PREFIX}_SNPs_gatkfilters.vcf.gz \
-    -Oz -o ${OUT_PREFIX}_SNPs_filters.vcf.gz
-bcftools index -t ${OUT_PREFIX}_SNPs_filters.vcf.gz
+    --filter-name "FAIL" --filter-expression "DP < 8" \
+    --filter-name "FAIL" --filter-expression "QUAL < 40.0" \
+    --filter-name "FAIL" --filter-expression "QD < 12.0" \
+    --filter-name "FAIL" --filter-expression "MQ < 40.0" \
+    --filter-name "FAIL" --filter-expression "FS > 20.0" \
+    --filter-name "FAIL" --filter-expression "SOR > 2.5" \
+    --filter-name "FAIL" --filter-expression "MQRankSum < -2.0" \
+    --filter-name "FAIL" --filter-expression "ReadPosRankSum < -2.0" \
+    --genotype-filter-name "FAIL" --genotype-filter-expression "GQ < 60" 
 
 # Run GATK default hard threholds for INDELs
 gatk SelectVariants \
@@ -51,22 +46,17 @@ gatk SelectVariants \
 
 gatk VariantFiltration \
     -V ${OUT_PREFIX}_INDELs.vcf.gz \
-    -O ${OUT_PREFIX}_INDELs_gatkfilters.vcf.gz \
+    -O ${OUT_PREFIX}_INDELs_filters.vcf.gz \
     -R ${FASTA} \
-    --filter-name "DP" --filter-expression "DP < 10" \
-    --filter-name "QUAL" --filter-expression "QUAL < 50.0" \
-    --filter-name "GATK-defaults-QD" --filter-expression "QD < 5.0" \
-    --filter-name "GATK-defaults-MQ" --filter-expression "MQ < 50.0" \
-    --filter-name "GATK-defaults-FS" --filter-expression "FS > 10.0" \
-    --filter-name "GATK-defaults-SOR" --filter-expression "SOR > 3.0" \
-    --filter-name "MQRankSum" --filter-expression "MQRankSum < -2.0" \
-    --filter-name "GATK-defaults-ReadPosRankSum" --filter-expression "ReadPosRankSum < -2.0"
-
-# Add filtering based on genotype quality
-bcftools filter -e 'FMT/GQ < 90' --soft-filter GQ \
-    ${OUT_PREFIX}_INDELs_gatkfilters.vcf.gz \
-    -Oz -o ${OUT_PREFIX}_INDELs_filters.vcf.gz
-bcftools index -t ${OUT_PREFIX}_INDELs_filters.vcf.gz
+    --filter-name "FAIL" --filter-expression "DP < 10" \
+    --filter-name "FAIL" --filter-expression "QUAL < 50.0" \
+    --filter-name "FAIL" --filter-expression "QD < 12.0" \
+    --filter-name "FAIL" --filter-expression "MQ < 50.0" \
+    --filter-name "FAIL" --filter-expression "FS > 10.0" \
+    --filter-name "FAIL" --filter-expression "SOR > 2.5" \
+    --filter-name "FAIL" --filter-expression "MQRankSum < -2.0" \
+    --filter-name "FAIL" --filter-expression "ReadPosRankSum < -2.0" \
+    --genotype-filter-name "FAIL" --genotype-filter-expression "GQ < 60"
 
 # Merge files together into a single VCF
 bcftools concat --allow-overlaps \
@@ -84,13 +74,13 @@ gatk CollectVariantCallingMetrics \
 
 # Generate a plottable table from the VCF
 gatk VariantsToTable \
-    -V ${INVCF} \
+    -V ${OUT_PREFIX}_filters.vcf.gz \
     -O ${OUT_PREFIX}.table \
     -F CHROM -F POS -F REF -F ALT \
-    -F QUAL -F FILTER -F TYPE -F HET \
+    -F FILTER -F QUAL -F TYPE -F HET \
     -F EVENTLENGTH -F MULTI-ALLELIC -F TRANSITION \
     -F DP -F QD -F FS -F MQ -F SOR \
     -F BaseQRankSum -F MQRankSum -F ReadPosRankSum \
-    -GF GQ \
+    -GF GQ -GF DP \
     --show-filtered true \
     --split-multi-allelic true
