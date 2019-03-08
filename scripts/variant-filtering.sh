@@ -27,15 +27,15 @@ gatk VariantFiltration \
     -V ${OUT_PREFIX}_SNPs.vcf.gz \
     -O ${OUT_PREFIX}_SNPs_filters.vcf.gz \
     -R ${FASTA} \
-    --filter-name "FAIL" --filter-expression "DP < 8" \
-    --filter-name "FAIL" --filter-expression "QUAL < 40.0" \
-    --filter-name "FAIL" --filter-expression "QD < 12.0" \
-    --filter-name "FAIL" --filter-expression "MQ < 40.0" \
-    --filter-name "FAIL" --filter-expression "FS > 20.0" \
-    --filter-name "FAIL" --filter-expression "SOR > 2.5" \
-    --filter-name "FAIL" --filter-expression "MQRankSum < -2.0" \
-    --filter-name "FAIL" --filter-expression "ReadPosRankSum < -2.0" \
-    --genotype-filter-name "FAIL" --genotype-filter-expression "GQ < 60" 
+    --filter-name "DP" --filter-expression "DP < 8" \
+    --filter-name "QUAL" --filter-expression "QUAL < 40.0" \
+    --filter-name "QD" --filter-expression "QD < 12.0" \
+    --filter-name "MQ" --filter-expression "MQ < 40.0" \
+    --filter-name "FS" --filter-expression "FS > 15.0" \
+    --filter-name "SOR" --filter-expression "SOR > 2.5" \
+    --filter-name "MQRankSum" --filter-expression "MQRankSum < -2.0" \
+    --filter-name "ReadPosRankSum" --filter-expression "ReadPosRankSum < -2.0" \
+    --genotype-filter-name "GQ" --genotype-filter-expression "GQ < 60" 
 
 # Run GATK default hard threholds for INDELs
 gatk SelectVariants \
@@ -48,15 +48,15 @@ gatk VariantFiltration \
     -V ${OUT_PREFIX}_INDELs.vcf.gz \
     -O ${OUT_PREFIX}_INDELs_filters.vcf.gz \
     -R ${FASTA} \
-    --filter-name "FAIL" --filter-expression "DP < 10" \
-    --filter-name "FAIL" --filter-expression "QUAL < 50.0" \
-    --filter-name "FAIL" --filter-expression "QD < 12.0" \
-    --filter-name "FAIL" --filter-expression "MQ < 50.0" \
-    --filter-name "FAIL" --filter-expression "FS > 10.0" \
-    --filter-name "FAIL" --filter-expression "SOR > 2.5" \
-    --filter-name "FAIL" --filter-expression "MQRankSum < -2.0" \
-    --filter-name "FAIL" --filter-expression "ReadPosRankSum < -2.0" \
-    --genotype-filter-name "FAIL" --genotype-filter-expression "GQ < 60"
+    --filter-name "DP" --filter-expression "DP < 10" \
+    --filter-name "QUAL" --filter-expression "QUAL < 50.0" \
+    --filter-name "QD" --filter-expression "QD < 12.0" \
+    --filter-name "MQ" --filter-expression "MQ < 50.0" \
+    --filter-name "FS" --filter-expression "FS > 10.0" \
+    --filter-name "SOR" --filter-expression "SOR > 2.5" \
+    --filter-name "MQRankSum" --filter-expression "MQRankSum < -2.0" \
+    --filter-name "ReadPosRankSum" --filter-expression "ReadPosRankSum < -2.0" \
+    --genotype-filter-name "GQ" --genotype-filter-expression "GQ < 60"
 
 # Merge files together into a single VCF
 bcftools concat --allow-overlaps \
