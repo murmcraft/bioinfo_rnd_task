@@ -131,8 +131,8 @@ coverage <- barplot(df, xaxis, yaxis, title, xlab, ylab, cols, labels) +
 # MAPQ distribution
 df <- mapq
 colnames(df) <- "x"
-xaxis <- scale_x_continuous()
-yaxis <- scale_x_continuous()
+xaxis <- scale_x_continuous(expand = c(0,0))
+yaxis <- scale_x_continuous(expand = c(0,0))
 title <- "Mapping quality distribution"
 xlab <- "MAPQ"
 ylab <- "Frequency"
@@ -180,27 +180,27 @@ according to GATK Best Practices.
 ***
 
 ### A, C, G and T content per cycle
-```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height=4}
 acgt
 ```
 
 ***
 
 ### Quality value distributions 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height=4}
 grid.arrange(baseq, mapqplot, ncol = 2)
 ```
 
 ***
 
 ### Coverage histograms 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height=4}
 coverage
 ```
 
 ***
 
 ### Indel lengths 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.height=4}
 indel_length
 ```
