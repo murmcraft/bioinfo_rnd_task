@@ -79,6 +79,10 @@ bcftools concat --allow-overlaps \
     -Oz -o ${OUT_PREFIX}_filters.vcf.gz
 bcftools index -t ${OUT_PREFIX}_filters.vcf.gz
 
+# Clean up
+rm ${OUT_PREFIX}_SNPs*.vcf.gz*
+rm ${OUT_PREFIX}_INDELs*.vcf.gz*
+
 # Collect metrics for filtered variants
 gatk CollectVariantCallingMetrics \
     -I ${OUT_PREFIX}_filters.vcf.gz \
