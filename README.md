@@ -7,18 +7,22 @@ This pipeline implements the following steps:
 - merging the variant results together
 - variant calling summary report
 
-The workflow is tested with a small WGS dataset - NA12878 aligned to GRCh37 reference genome.  
-The raw data was obtained from [GATK tutorial data set](https://drive.google.com/file/d/0BzI1CyccGsZiWURLdUdfRjVQazg/view) and re-aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl) recommendations.
+The pipeline is composed into a Docker image, which is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) with added tools and functionalities.
 
-## Build and run the Docker image
-
-The Dockerfile is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) with added tools and functionalities.
-
-It includes GATK4 and additional tools required for the pipeline, for instance:
+The image includes GATK4 and additional tools required for the pipeline, for instance:
 - GATK v4.1.0.0
 - SAMtools v1.9
 - BCFtools v1.9
-- R v3.2.5
+- R v3.4.4 with packages (ggplot2, data.table, reshape2, gridExtra, kableExtra, rmarkdown)
+As well as:
+- pipeline scripts
+- test BAM file
+
+The workflow is tested with a small WGS dataset for sample NA12878 for chromosome 10 region subset. The raw data was obtained from [GATK tutorial data set](https://drive.google.com/file/d/0BzI1CyccGsZiWURLdUdfRjVQazg/view), converted to fastq format and re-aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl) recommendations.
+
+## 1. Preparatory steps and input files
+
+### 1.1. Build and run the Docker image
 
 First, clone the repository and enter the directory.
 
@@ -40,9 +44,9 @@ WKD=/home/
 ls ${WKD}
 ```
 
-## Input file requirements and preparations
+### 1.2. Input file requirements and preparations
 
-#### BAM file
+#### 1.2.1. BAM file
 The input BAM file should *at least* be:
 - paired-end WGS data,
 - trimmed or clipped for adapters,
@@ -63,16 +67,14 @@ In case errors were found, the script procudes
 `.summary`and `.verbose` files, which indicate the errors and point their sources.  
 [GATK documentation](https://software.broadinstitute.org/gatk/documentation/article.php?id=7571) provides tips how to fix the BAM file into a compatible format. 
 
-#### Reference files
+#### 1.2.2. Reference files
 The required files are:
 - reference genome fasta with dictionary and index,
 - known variant sites,
 - known indels,
-- truth datasets, and 
 - WGS interval list
 
-Depending on to which reference genome your reads are aligned, download corresponding reference files.  
-Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from indicated sources:
+Depending on to which reference genome your reads are aligned, download corresponding reference files. Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from indicated sources:
 ```
 mkdir -p reference-data
 cd reference-data
@@ -107,7 +109,7 @@ samtools faidx Homo_sapiens.GRCh37.dna.primary_assembly.fa
 Download the WGS interval list manually from [GATK Google Cloud bucket](https://console.cloud.google.com/storage/browser/gatk-test-data/intervals) and place it to the reference-data directory
 - `b37_wgs_consolidated_calling_intervals.list`
 
-## Run the complete workflow
+## 2. Run the complete workflow
 
 To run the complete workflow, use the script with wanted inputs:
 
@@ -115,10 +117,15 @@ To run the complete workflow, use the script with wanted inputs:
 
 The full workflow will run each step described below. Wanted steps can also be run separately according to the command examples.
 
+### Relevant output files
+- DATASET_bqsr.DATE.BAM-QC.html (BAM quality report)
+- DATASET_filters.vcf.gz (variant calling results)
+- DATASET.DATE.variant-QC.html (variant quality report)
 
-## Step-by-step descriptions
 
-### Mark duplicates
+## More detailed step-by-step descriptions
+
+### 1. Mark duplicates
 
 It is recommended practice to mark duplicate reads, which are then ignored in variant calling. Duplicates are determined as those reads whose 5' positions are identical. Often the origin of duplicate reads is the PCR during library preparation, but also sequencing may cause optical duplicates.
 
@@ -131,7 +138,7 @@ mark-duplicates.sh \
 where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files. 
 
 
-### Base quality score recalibration
+### 2. Base quality score recalibration
 
 Base quality score recalibration is meant to detect systematic errors in the base calling quality scores made by the sequencer. The quality scores are adjusted with the help of known variants. 
 
@@ -146,7 +153,7 @@ base-quality-score-recalibration.sh \
 where `${WKD}/NA12878.bam` is the path to input BAM file, `NA12878_bqsr` is a output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
 
-### Alignment quality
+### 3. Alignment quality
 
 Collect various alignment quality metrics:
 ```
@@ -162,7 +169,7 @@ where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output file
 The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` containing BAM quality metrics (currently only summary metrics table, ACGT content per cycle plot, coverage, mapping quality and indel lengths histograms are implemented).
 
 
-### Variant calling
+### 4. Variant calling
 
 GATK HaplotypeCaller simultaneously calls SNPs and indels and does local *de novo* assembly at the active region increasing the accuracy of the calls. To speed up the variant calling, it is good to parallelize the process per genomic interval. These are defined by GATK as a handful of non-overlapping regions per each chromosome excluding non-interesting or difficult regions such as centromeres (in total 103 intervals of autosomal and X chromosomes).  
 
@@ -177,7 +184,7 @@ variant-calling.sh \
     /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list
 ```
 
-### Variant filtering and quality metrics
+### 5. Variant filtering and quality metrics
 Here, due to the tiny example dataset, only hard-coded variant filtering thresholds are used instead of for instance GATK Variant Quality Score Recalibration. 
 
 ```
