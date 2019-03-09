@@ -74,7 +74,7 @@ plotdata <- lapply(statlist, function(x) {
 
 # ACGT content per cycle
 df <- plotdata[[1]]
-xlim <- c(0,250)
+xlim <- c(0,max(df$x))
 ylim <- c(0,100)
 title <- "A,C,G,T content per cycle"
 xlab <- "Cycle"
