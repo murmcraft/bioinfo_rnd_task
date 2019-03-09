@@ -29,11 +29,11 @@ RUN git clone git://github.com/samtools/samtools.git && \
 ENV PATH=${PATH}:/tools
 
 # Install additional R packages
-RUN echo "install.packages('data.table', repos='http://cran.us.r-project.org')" | R --no-save
-RUN echo "install.packages('ggplot2', repos='http://cran.us.r-project.org')" | R --no-save
-RUN echo "install.packages('gridExtra', repos='http://cran.us.r-project.org')" | R --no-save
-RUN echo "install.packages('rmarkdown', repos='http://cran.us.r-project.org')" | R --no-save
-RUN echo "install.packages('kableExtra', repos='http://cran.us.r-project.org')" | R --no-save
+RUN R -e "install.packages('data.table', repos='http://cran.us.r-project.org')"
+RUN R -e "install.packages('ggplot2', repos='http://cran.us.r-project.org')"
+RUN R -e "install.packages('gridExtra', repos='http://cran.us.r-project.org')"
+RUN R -e "install.packages('rmarkdown', repos='http://cran.us.r-project.org')"
+RUN R -e "install.packages('kableExtra', repos='http://cran.us.r-project.org')"
 
 # Copy workflow scripts
 RUN mkdir -p /scripts
