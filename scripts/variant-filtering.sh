@@ -92,7 +92,6 @@ gatk VariantsToTable \
     -F FILTER -F QUAL -F TYPE -F HET \
     -F EVENTLENGTH -F MULTI-ALLELIC -F TRANSITION \
     -F DP -F QD -F FS -F MQ -F SOR \
-    -F BaseQRankSum -F MQRankSum -F ReadPosRankSum \
+    -F MQRankSum -F ReadPosRankSum \
     -GF GQ \
-    --show-filtered true \
-    --split-multi-allelic true
+    --show-filtered true 
