@@ -6,7 +6,7 @@
 INBAM=$1 # Input .bam filename
 OUT_PREFIX=$2 # Output file prefix
 FASTA=$3 # Reference genome .fasta file
-SITES=$4 # Known variant sites VCF
+DBSNP=$4 # Known variant sites VCF
 INDELS=$5 # Known indels VCF
 
 # Create an output directory
@@ -21,7 +21,7 @@ gatk BaseRecalibrator \
     -O ${OUT_PREFIX}.table \
     -R ${FASTA} \
     --use-original-qualities \
-    --known-sites ${SITES} \
+    --known-sites ${DBSNP} \
     --known-sites ${INDELS}
 
 # Apply the model to adjust base calling quality scores
