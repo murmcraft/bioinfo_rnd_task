@@ -168,7 +168,7 @@ collect-alignment-metrics.sh \
     0.99 \
     /scripts
 ```
-where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `0.99` is the subsampling proportion (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.25 depending on the size of the input data), and `/scripts` is the path to scripts directory.
+where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data), and `/scripts` is the path to scripts directory.
 
 The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` containing BAM quality metrics (currently only summary metrics table, ACGT content per cycle plot, coverage, mapping quality and indel lengths histograms are implemented).
 
@@ -196,5 +196,13 @@ variant-filtering.sh \
     ${WKD}/variant-calling/NA12878.vcf.gz \
     NA12878 \
     /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
-    /home/reference-data/dbsnp_138.b37.excluding_sites_after_129.vcf.gz
+    /home/reference-data/dbsnp_138.b37.excluding_sites_after_129.vcf.gz \
+    /scripts \
+    0.99
 ```
+where `NA12878.vcf.gz` is the input VCF filename, `NA12878` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the known SNPs from dbSNP, `/scripts` is the path to scripts directory, and `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data).
+
+The script generates: 
+- a VCF file `NA12878_filters.vcf.gz`, which contain all original variants, but FILTER and FORMAT/FT columns are populated with the information whether the default filtering thresholds were passed or which filter failed,
+- a quality metrics table `NA12878.table`, which contain all variant quality metrics values, and
+- an HTML report `NA12878.<date>.variant_QC_report.html` containing sample- and variant-wise quality metrics and quality plots.
