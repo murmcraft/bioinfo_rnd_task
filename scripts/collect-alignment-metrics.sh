@@ -48,6 +48,8 @@ cat ${OUT_PREFIX}_samtools.metrics | \
     grep "^ID" | cut -f1-4 > ${OUT_PREFIX}_indeldistribution.stats
 cat ${OUT_PREFIX}_samtools.metrics | \
     grep "^COV" | cut -f1,3-4 > ${OUT_PREFIX}_coverage.stats
+cat ${OUT_PREFIX}_qscore.metrics | \
+    grep '^[0-9]' > ${OUT_PREFIX}_qscore.stats
 
 # Generate a HTML report of the quality metrics
 FILE_PREFIX=$(basename ${INBAM%.bam})
@@ -56,3 +58,7 @@ Rscript ${SCRIPTS}/generate-bam-QC-report.R \
     ${OUTPUT_DIR} \
     ${FILE_PREFIX} \
     ${SCRIPTS}
+
+# Clean up
+rm ${OUT_PREFIX}_qscore.pdf
+rm ${OUT_PREFIX}*.stats
