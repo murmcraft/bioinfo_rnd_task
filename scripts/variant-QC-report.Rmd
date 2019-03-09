@@ -11,6 +11,7 @@ params:
 ---
 
 ```{r, include = FALSE}
+# Set input data dir as working directory
 setwd(params$input_dir)
 
 ## REQUIRED LIBRARIES ##
@@ -56,7 +57,7 @@ types <- metrics.table[, .N, by=.(FILTER, TYPE)]
 titvfilters <- metrics.table[TYPE=="SNP", .N, by=.(FILTER,TRANSITION)]
 indelfilters <- metrics.table[TYPE=="INDEL", .N, by=.(FILTER,EVENTLENGTH)]
 hethom <- metrics.table[, .N, by=.(FILTER,HET)]
-gqfilters <- metrics.table[,.SD, .SDcols=20, by=.(FILTER, TYPE)]
+gqfilters <- metrics.table[,.SD, .SDcols=19, by=.(FILTER, TYPE)]
 dpfilters <- metrics.table[, DP, by=.(FILTER, TYPE)]
 # Collect output table row values from the substats tables for before and after filtering values
 totalvars <- c(types[,sum(N)], 
@@ -177,7 +178,7 @@ variantmetrics <- data.frame(SNPs = c(meanqualsnp, meanqdsnp, meanfssnp, meansor
 metrics.plot <- setDT(metrics.table)[, .SD[sample(.N, round(params$sample*.N,0), replace=F)], by = .(FILTER, TYPE)]
 
 # GQ
-plotdata <- metrics.plot[,.SD, .SDcols=20, by=.(FILTER, TYPE)]
+plotdata <- metrics.plot[,.SD, .SDcols=19, by=.(FILTER, TYPE)]
 colnames(plotdata) <- c("variable", "facet", "value")
 plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
 plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
