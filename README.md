@@ -7,7 +7,7 @@ This pipeline implements the following steps:
 - merging the variant results together
 - variant calling summary report
 
-The pipeline is composed into a Docker image, which is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) with added tools and functionalities.
+The pipeline follows GATK Best Practices and is composed into a Docker image, which is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) with added tools and functionalities.
 
 The image includes GATK4 and additional tools required for the pipeline, for instance:
 - GATK v4.1.0.0
@@ -117,15 +117,15 @@ To run the complete workflow, use the script with wanted inputs:
 
 The full workflow will run each step described below. Wanted steps can also be run separately according to the command examples.
 
-### Relevant output files
-- BAM quality report: DATASET_bqsr.DATE.BAM-QC.html
-- Variant calling results: DATASET_filters.vcf.gz
-- Variant quality report: DATASET.DATE.variant-QC.html
+### Most relevant output files
+- **BAM quality report:** DATASET_bqsr.DATE.BAM-QC.html
+- **Variant calling results:** DATASET_filters.vcf.gz
+- **Variant quality report:** DATASET.DATE.variant-QC.html
 
 
 ## More detailed step-by-step descriptions
 
-### 1. Mark duplicates
+### Step 1. Mark duplicates
 
 It is recommended practice to mark duplicate reads, which are then ignored in variant calling. Duplicates are determined as those reads whose 5' positions are identical. Often the origin of duplicate reads is the PCR during library preparation, but also sequencing may cause optical duplicates.
 
@@ -138,7 +138,7 @@ mark-duplicates.sh \
 where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files. 
 
 
-### 2. Base quality score recalibration
+### Step 2. Base quality score recalibration
 
 Base quality score recalibration is meant to detect systematic errors in the base calling quality scores made by the sequencer. The quality scores are adjusted with the help of known variants. 
 
@@ -153,7 +153,7 @@ base-quality-score-recalibration.sh \
 where `${WKD}/NA12878.bam` is the path to input BAM file, `NA12878_bqsr` is a output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
 
-### 3. Alignment quality
+### Step 3. Alignment quality
 
 Collect various alignment quality metrics:
 ```
@@ -169,7 +169,7 @@ where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output file
 The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` containing BAM quality metrics (currently only summary metrics table, ACGT content per cycle plot, coverage, mapping quality and indel lengths histograms are implemented).
 
 
-### 4. Variant calling
+### Step 4. Variant calling
 
 GATK HaplotypeCaller simultaneously calls SNPs and indels and does local *de novo* assembly at the active region increasing the accuracy of the calls. To speed up the variant calling, it is good to parallelize the process per genomic interval. These are defined by GATK as a handful of non-overlapping regions per each chromosome excluding non-interesting or difficult regions such as centromeres (in total 103 intervals of autosomal and X chromosomes).  
 
@@ -184,7 +184,7 @@ variant-calling.sh \
     /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list
 ```
 
-### 5. Variant filtering and quality metrics
+### Step 5. Variant filtering and quality metrics
 Here, due to the tiny example dataset, only hard-coded variant filtering thresholds are used instead of for instance GATK Variant Quality Score Recalibration. 
 
 ```
