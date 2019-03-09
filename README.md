@@ -113,7 +113,17 @@ Download the WGS interval list manually from [GATK Google Cloud bucket](https://
 
 To run the complete workflow, use the script with wanted inputs:
 
-*********UPDATE HERE
+```
+run-workflow.sh \
+    ${WKD} \
+    /scripts \
+    NA12878 \
+    /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
+    /home/reference-data/dbsnp_138.b37.excluding_sites_after_129.vcf.gz \
+    /home/reference-data/Mills_and_1000G_gold_standard.indels.b37.vcf.gz \
+    /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list \
+    0.99
+```
 
 The full workflow will run each step described below. Wanted steps can also be run separately according to the command examples.
 
