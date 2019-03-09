@@ -13,7 +13,7 @@ The image includes GATK4 and additional tools required for the pipeline, for ins
 - GATK v4.1.0.0
 - SAMtools v1.9
 - BCFtools v1.9
-- R v3.4.4 with packages (ggplot2, data.table, reshape2, gridExtra, kableExtra, rmarkdown)
+- R v3.4.4 with packages (ggplot2, data.table, reshape2, gridExtra, kableExtra, rmarkdown)  
 As well as:
 - pipeline scripts
 - test BAM file
@@ -118,9 +118,9 @@ To run the complete workflow, use the script with wanted inputs:
 The full workflow will run each step described below. Wanted steps can also be run separately according to the command examples.
 
 ### Relevant output files
-- DATASET_bqsr.DATE.BAM-QC.html (BAM quality report)
-- DATASET_filters.vcf.gz (variant calling results)
-- DATASET.DATE.variant-QC.html (variant quality report)
+- BAM quality report: DATASET_bqsr.DATE.BAM-QC.html
+- Variant calling results: DATASET_filters.vcf.gz
+- Variant quality report: DATASET.DATE.variant-QC.html
 
 
 ## More detailed step-by-step descriptions
