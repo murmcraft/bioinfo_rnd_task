@@ -1,6 +1,6 @@
-# Tiny pipeline for simple variant calling and quality control
+# A tiny NGS pipeline for a simple variant calling and quality control
 
-This pipeline implements the following:
+This pipeline implements the following steps:
 - input as BAM file
 - BAM quality control
 - variant calling on split BAM files
@@ -8,7 +8,7 @@ This pipeline implements the following:
 - variant calling summary report
 
 The workflow is tested with a small WGS dataset - NA12878 aligned to GRCh37 reference genome.  
-The raw data was obtained from [GATK test data sets](https://console.cloud.google.com/storage/browser/gatk-test-data) and aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl).
+The raw data was obtained from [GATK tutorial data set](https://drive.google.com/file/d/0BzI1CyccGsZiWURLdUdfRjVQazg/view) and re-aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl) recommendations.
 
 ## Build and run the Docker image
 
