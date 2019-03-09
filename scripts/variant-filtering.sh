@@ -8,7 +8,7 @@ OUT_PREFIX=$2 # Output file prefix
 FASTA=$3 # Reference genome .fasta file
 DBSNP=$4 # Known variants from dbSNP
 SCRIPTS=$5 # Path to scripts
-SAMPLESIZE=$6 # Fraction of data to use for plotting
+SAMPLE_SIZE=$6 # Fraction of data to use for plotting
 
 # Create an output directory
 DIR=variant-filtering 
@@ -105,4 +105,4 @@ Rscript ${SCRIPTS}/generate-variant-QC-report.R \
     ${OUTPUT_DIR} \
     ${FILE_PREFIX} \
     ${SCRIPTS} \
-    ${SAMPLESIZE}
+    ${SAMPLE_SIZE}
