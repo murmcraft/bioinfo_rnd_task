@@ -1,6 +1,8 @@
 ---
 title: "BAM quality metrics report"
-output: html_document
+output: 
+  html_document:
+    toc: true
 params: 
   scripts: /scripts
   input_dir: /home/alignment-quality-metrics
@@ -53,6 +55,7 @@ alnmetrics <- format(setNames(data.frame(t(alnmetrics[,-1])),
 summarytable <- data.frame(Total = alnmetrics$PAIR,
                            First_of_pair = alnmetrics$FIRST_OF_PAIR,
                            Second_of_pair = alnmetrics$SECOND_OF_PAIR)
+colnames(summarytable)[2,3] <- c("1st of pair", "2nd of pair")
 ```
 
 ```{r, include = FALSE, message = FALSE, warning = FALSE}
@@ -83,8 +86,8 @@ cols <- c(brewer.pal(12, "Paired")[c(4,2)], "black", brewer.pal(12, "Paired")[c(
 labels <- c("A", "C", "G", "T")
 acgt <- lineplot(df, xlim, ylim, title, xlab, ylab, cols, labels) +
   facet_wrap(~type, ncol = 3, labeller = as_labeller(c("GCC" = "All reads",
-                                                       "FBC" = "First in pair",
-                                                       "LBC" = "Second in pair"))) +
+                                                       "FBC" = "1st of pair",
+                                                       "LBC" = "2nd of pair"))) +
   theme(legend.justification = "right") 
 
 # Coverage distribution
@@ -139,34 +142,48 @@ indel_length <- barplot(df, xaxis, yaxis, title, xlab, ylab, cols, labels) +
                                       "deletions" = "Deletions")))
 ```
 
-### BAM quality metrics summary for `r params$dataset` on `r Sys.Date()`
+***
 
+### Run info
+**Sample:** `r params$dataset`  
+**Run date:** `r Sys.Date()`  
+**Scripts:** `r params$scripts`  
+**Data dir:** `r params$input_dir` 
+
+***
+
+BAM processing included duplicate marking and base quality score recalibration
+according to GATK Best Practices.
 
 ```{r, echo = FALSE}
 # Print with rownames as row titles
-  kable_styling(kable(summarytable), bootstrap_options = "striped", full_width = F)
+  kable_styling(kable(summarytable), bootstrap_options = "striped", full_width = F, position = "left")
 ```
 
+***
 
-### A, C, G and T content per cycle for all reads and separately for first and second in pair
-```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+### A, C, G and T content per cycle
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 acgt
 ```
 
+***
 
 ### Coverage histograms 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 coverage
 ```
 
+***
 
 ### Mapping quality distribution 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 mapqplot
 ```
 
+***
 
 ### Indel lengths 
-```{r, echo = FALSE, message = FALSE, warning = FALSE, fig.align="center"}
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
 indel_length
 ```
