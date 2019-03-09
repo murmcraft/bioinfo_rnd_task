@@ -1,0 +1,206 @@
+---
+title: "Variant quality metrics report"
+output: 
+  html_document:
+    toc: true
+params: 
+  scripts: /scripts
+  input_dir: /home/variant-filtering
+  dataset: NA12878
+---
+
+```{r, include = FALSE}
+setwd(params$input_dir)
+
+## REQUIRED LIBRARIES ##
+library(data.table)
+library(ggplot2)
+library(RColorBrewer)
+library(reshape2)
+
+## FUNCTIONS ##
+# Source functions
+source(paste0(params$scripts, "/plot-theme.R"))
+source(paste0(params$scripts, "/plot-functions.R"))
+
+# Helper functions
+# Consistent format for table values
+formatter <- function(x) {
+  return(sprintf("%.2f", x))
+}
+
+## INPUT FILES ##
+# data.table for potentially very large input file
+metrics.table <- fread(list.files(path = params$input_dir, pattern = ".table"), header = T)
+metrics.summary <- read.delim(list.files(path = params$input_dir, pattern = "*_summary_metrics"), 
+                              header = T, stringsAsFactors = F, comment.char = '#')
+metrics.detail <- read.delim(list.files(path = params$input_dir, pattern = "*_detail_metrics"), 
+                             header = T, stringsAsFactors = F, comment.char = '#')
+
+## SUMMARY TABLE ##
+# Generate a pretty output table for sample quality metrics
+rowtitles <- c("Total variants", "SNPs", "Transitions", "Transversions", "Ti/Tv",
+               "Indels", "Insertions", "Deletions", "Insertions/Deletions", "Median Indel length (max)",
+               "Hets", "HomVars", "Het/HomVar",
+               "Mean GQ (SD)", "Mean DP (SD)")
+
+# Generate columns with stats before filters and stats after filters
+
+# Change all failing default filters to "FAIL"
+idx <- metrics.table[,which(FILTER!="PASS")]
+metrics.table[idx, FILTER := "FAIL"]
+
+# Calculate substats from the big table once
+types <- metrics.table[, .N, by=.(FILTER, TYPE)]
+titvfilters <- metrics.table[TYPE=="SNP", .N, by=.(FILTER,TRANSITION)]
+indelfilters <- metrics.table[TYPE=="INDEL", .N, by=.(FILTER,EVENTLENGTH)]
+hethom <- metrics.table[, .N, by=.(FILTER,HET)]
+gqfilters <- metrics.table[,.SD, .SDcols=20, by=.(FILTER, TYPE)]
+dpfilters <- metrics.table[, DP, by=.(FILTER, TYPE)]
+# Collect output table row values from the substats tables for before and after filtering values
+totalvars <- c(types[,sum(N)], 
+               types[FILTER=="PASS",sum(N)])
+snps <- c(types[TYPE=="SNP", sum(N)],
+          types[TYPE=="SNP" & FILTER=="PASS", sum(N)])
+transitions <- c(titvfilters[TRANSITION==1, sum(N)],
+                 titvfilters[TRANSITION==1 & FILTER=="PASS", sum(N)])
+transversions <- c(titvfilters[TRANSITION==0, sum(N)],
+                   titvfilters[TRANSITION==0 & FILTER=="PASS", sum(N)])
+titv <- c(formatter(titvfilters[TRANSITION==1, sum(N)] / titvfilters[TRANSITION==0, sum(N)]), 
+          formatter(titvfilters[TRANSITION==1 & FILTER=="PASS", sum(N)] / titvfilters[TRANSITION==0 & FILTER=="PASS", sum(N)]))
+indels <- c(types[TYPE=="INDEL", sum(N)], 
+            types[TYPE=="INDEL" & FILTER=="PASS", sum(N)])
+insertions <- c(indelfilters[EVENTLENGTH>0, sum(N)],
+                indelfilters[EVENTLENGTH>0 & FILTER=="PASS", sum(N)])
+deletions <- c(indelfilters[EVENTLENGTH<0, sum(N)],
+               indelfilters[EVENTLENGTH<0 & FILTER=="PASS", sum(N)])
+indelratio <- c(formatter(indelfilters[EVENTLENGTH>0, sum(N)] / indelfilters[EVENTLENGTH<0, sum(N)]),
+                formatter(indelfilters[EVENTLENGTH>0 & FILTER=="PASS", sum(N)] / indelfilters[EVENTLENGTH<0 & FILTER=="PASS", sum(N)]))
+indellen <- c(paste0(indelfilters[, median(rep(abs(EVENTLENGTH),N))], 
+                   " (", indelfilters[, max(rep(abs(EVENTLENGTH),N))], ")"),
+              paste0(indelfilters[FILTER=="PASS", median(rep(abs(EVENTLENGTH),N))], 
+                     " (", indelfilters[FILTER=="PASS", max(rep(abs(EVENTLENGTH),N))], ")"))
+hets <- c(hethom[HET==1, sum(N)], 
+          hethom[HET==1 & FILTER=="PASS", sum(N)])
+homvars <- c(hethom[HET==0, sum(N)], 
+             hethom[HET==0 & FILTER=="PASS", sum(N)])
+hethomratio <- c(formatter(hethom[HET==1, sum(N)] / hethom[HET==0, sum(N)]),
+                 formatter(hethom[HET==1 & FILTER=="PASS", sum(N)] / hethom[HET==0 & FILTER=="PASS", sum(N)]))
+meangq <- c(paste0(formatter(mean(gqfilters[,3][[1]])), 
+                   " (", formatter(sd(gqfilters[,3][[1]])), ")"),
+            paste0(formatter(mean(gqfilters[FILTER=="PASS",3][[1]])), 
+                   " (", formatter(sd(gqfilters[FILTER=="PASS",3][[1]])), ")"))
+meandp <- c(paste0(formatter(mean(dpfilters[,3][[1]])), 
+                   " (", formatter(sd(dpfilters[,3][[1]])), ")"),
+            paste0(formatter(mean(dpfilters[FILTER=="PASS",3][[1]])), 
+                   " (", formatter(sd(dpfilters[FILTER=="PASS",3][[1]])), ")"))
+stats <- rbind(totalvars, snps, transitions, transversions, titv, indels, insertions,
+               deletions, indelratio, indellen, hets, homvars, hethomratio, meangq, meandp)
+# Form the output data.frame
+samplemetrics <- data.frame(Raw = stats[,1],
+                            Filtered = stats[,2],
+                            row.names = rowtitles)
+
+# Generate another table for known and novel variants
+rowtitles <- c("SNPs", "Ti/Tv", "Indels", "Insertions/Deletions")
+knownvariants <- c(metrics.summary$NUM_IN_DB_SNP,
+                   formatter(metrics.summary$DBSNP_TITV),
+                   metrics.summary$NUM_IN_DB_SNP_INDELS,
+                   formatter(metrics.summary$DBSNP_INS_DEL_RATIO))
+novelvariants <- c(metrics.summary$NOVEL_SNPS,
+                   formatter(metrics.summary$NOVEL_TITV),
+                   metrics.summary$NOVEL_INDELS,
+                   formatter(metrics.summary$NOVEL_INS_DEL_RATIO))
+dbsnppercentages <- c(paste0(formatter(100*metrics.summary$PCT_DBSNP), " %"),
+                      "-",
+                      paste0(formatter(100*metrics.summary$PCT_DBSNP_INDELS), " %"),
+                      "-")
+# Form the output data.frame
+knowntable <- data.frame(Known = knownvariants,
+                         Novel = novelvariants,
+                         dbSNP = dbsnppercentages,
+                         row.names = rowtitles)
+
+# Generate a table for filtered variant-wise metrics
+rowtitles <- c("Mean QUAL (SD)", "Mean QD (SD)", "Mean FS (SD)", "Mean SOR (SD)", 
+               "Mean MQ (SD)", "Mean MQRankSum (SD)", "Mean ReadPosRankSum (SD)",
+               "Mean GQ (SD)", "Mean DP (SD)")
+passed <- metrics.table[FILTER=="PASS",]
+meanqualsnp <- paste0(formatter(passed[TYPE=="SNP", mean(QUAL)]), 
+                      " (", formatter(passed[TYPE=="SNP", sd(QUAL)]), ")")
+meanqualindel <- paste0(formatter(passed[TYPE=="INDEL", mean(QUAL)]), 
+                        " (", formatter(passed[TYPE=="INDEL", sd(QUAL)]), ")")
+meanqdsnp <- paste0(formatter(passed[TYPE=="SNP", mean(QD)]), 
+                    " (", formatter(passed[TYPE=="SNP", sd(QD)]), ")")
+meanqdindel <- paste0(formatter(passed[TYPE=="INDEL", mean(QD)]), 
+                      " (", formatter(passed[TYPE=="INDEL", sd(QD)]), ")")
+meanfssnp <- paste0(formatter(passed[TYPE=="SNP", mean(FS)]), 
+                    " (", formatter(passed[TYPE=="SNP", sd(FS)]), ")")
+meanfsindel <- paste0(formatter(passed[TYPE=="INDEL", mean(FS)]), 
+                      " (", formatter(passed[TYPE=="INDEL", sd(FS)]), ")")
+meansorsnp <- paste0(formatter(passed[TYPE=="SNP", mean(SOR)]), 
+                     " (", formatter(passed[TYPE=="SNP", sd(SOR)]), ")")
+meansorindel <- paste0(formatter(passed[TYPE=="INDEL", mean(SOR)]), 
+                       " (", formatter(passed[TYPE=="INDEL", sd(SOR)]), ")")
+meanmqsnp <- paste0(formatter(passed[TYPE=="SNP", mean(MQ)]), 
+                    " (", formatter(passed[TYPE=="SNP", sd(MQ)]), ")")
+meanmqindel <- paste0(formatter(passed[TYPE=="INDEL", mean(MQ)]), 
+                      " (", formatter(passed[TYPE=="INDEL", sd(MQ)]), ")")
+meanmqrssnp <- paste0(formatter(passed[TYPE=="SNP", mean(MQRankSum, na.rm=T)]), 
+                      " (", formatter(passed[TYPE=="SNP", sd(MQRankSum, na.rm=T)]), ")")
+meangqsnp <- paste0(formatter(mean(gqfilters[FILTER=="PASS" & TYPE=="SNP",3][[1]])),
+                    " (", formatter(sd(gqfilters[FILTER=="PASS" & TYPE=="SNP",3][[1]])), ")")
+meangqindel <- paste0(formatter(mean(gqfilters[FILTER=="PASS" & TYPE=="INDEL",3][[1]])),
+                    " (", formatter(sd(gqfilters[FILTER=="PASS" & TYPE=="INDEL",3][[1]])), ")")
+meandpsnp <- paste0(formatter(mean(dpfilters[FILTER=="PASS" & TYPE=="SNP",3][[1]])),
+                    " (", formatter(sd(dpfilters[FILTER=="PASS" & TYPE=="SNP",3][[1]])), ")")
+meandpindel <- paste0(formatter(mean(dpfilters[FILTER=="PASS" & TYPE=="INDEL",3][[1]])),
+                      " (", formatter(sd(dpfilters[FILTER=="PASS" & TYPE=="INDEL",3][[1]])), ")")
+# Form the output data.frame
+variantmetrics <- data.frame(SNPs = c(meanqualsnp, meanqdsnp, meanfssnp, meansorsnp, 
+                                      meanmqsnp, meanmqrssnp, meanrprssnp, 
+                                      meangqsnp, meandpsnp),
+                             INDELs = c(meanqualindel, meanqdindel, meanfsindel, meansorindel, 
+                                        meanmqindel, meanmqrsindel, meanrprsindel,
+                                        meangqindel, meandpindel),
+                             row.names = rowtitles)
+```
+### Run info
+**Sample:** `r params$dataset`  
+**Run date:** `r Sys.Date()`  
+**Scripts:** `r params$scripts`  
+**Data dir:** `r params$input_dir` 
+
+Default filters were applied to SNPs and INDELs separately as follows (SNP threshold / INDEL threshold):  
+    - **QUAL** < 40/50  
+    - **QD** < 12/10  
+    - **FS** > 15/10  
+    - **SOR** > 2.5/2.5  
+    - **MQ** < 40/50  
+    - **MQRankSum** < -2/-2  
+    - **ReadPosRankSum** < -2/-2  
+    - **GQ** < 60/60  
+    - **DP** < 8/10 
+
+The VCF file **`r paste0(params$dataset, ".vcf.gz")`** contain all variants and genotypes.  
+Only **FILTER** and **FORMAT/FT** columns set accordingly, if certain filtering threshold was not met.
+
+### Raw and filtered sample-wise quality metrics
+```{r, echo = FALSE}
+# Print with rownames as row titles
+  kable_styling(kable(samplemetrics), bootstrap_options = "striped", full_width = F, position = "left")
+```
+
+
+### Known (dbSNP) and novel variants filtered with default thresholds
+```{r, echo = FALSE}
+# Print with rownames as row titles
+  kable_styling(kable(knowntable), bootstrap_options = "striped", full_width = F, position = "left")
+```
+
+
+### Variant-wise quality metrics for SNPs and INDELs filtered with default thresholds
+```{r, echo = FALSE}
+# Print with rownames as row titles
+  kable_styling(kable(variantmetrics), bootstrap_options = "striped", full_width = F, position = "left")
+```
