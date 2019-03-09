@@ -46,3 +46,17 @@ histogram <- function(df, xaxis, yaxis, title, xlab, ylab, cols, labels, bins) {
     plottheme
   return(p)
 }
+densityplot <- function(df, title, xlab, ylab, cols, labels, alpha, adjust) {
+  p <- ggplot(df, 
+              aes(x = value,
+                  color = "black",
+                  fill = variable)) +
+    geom_density(alpha = alpha, adjust = adjust) +
+    scale_x_continuous(expand = c(0,0)) +
+    scale_y_continuous(expand = c(0,0)) +
+    scale_fill_manual(values = cols, labels = labels) +
+    scale_color_manual(values = "black", guide = "none") +
+    labs(title = title, x = xlab, y = ylab) + 
+    plottheme
+  return(p)
+}
