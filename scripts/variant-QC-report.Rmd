@@ -7,6 +7,7 @@ params:
   scripts: /scripts
   input_dir: /home/variant-filtering
   dataset: NA12878
+  sample: 0.2
 ---
 
 ```{r, include = FALSE}
@@ -16,7 +17,7 @@ setwd(params$input_dir)
 library(data.table)
 library(ggplot2)
 library(RColorBrewer)
-library(reshape2)
+library(gridExtra)
 
 ## FUNCTIONS ##
 # Source functions
@@ -148,6 +149,12 @@ meanmqindel <- paste0(formatter(passed[TYPE=="INDEL", mean(MQ)]),
                       " (", formatter(passed[TYPE=="INDEL", sd(MQ)]), ")")
 meanmqrssnp <- paste0(formatter(passed[TYPE=="SNP", mean(MQRankSum, na.rm=T)]), 
                       " (", formatter(passed[TYPE=="SNP", sd(MQRankSum, na.rm=T)]), ")")
+meanmqrsindel <- paste0(formatter(passed[TYPE=="INDEL", mean(MQRankSum, na.rm=T)]), 
+                      " (", formatter(passed[TYPE=="INDEL", sd(MQRankSum, na.rm=T)]), ")")
+meanrprssnp <- paste0(formatter(passed[TYPE=="SNP", mean(ReadPosRankSum, na.rm=T)]), 
+                      " (", formatter(passed[TYPE=="SNP", sd(ReadPosRankSum, na.rm=T)]), ")")
+meanrprsindel <- paste0(formatter(passed[TYPE=="INDEL", mean(ReadPosRankSum, na.rm=T)]), 
+                      " (", formatter(passed[TYPE=="INDEL", sd(ReadPosRankSum, na.rm=T)]), ")")
 meangqsnp <- paste0(formatter(mean(gqfilters[FILTER=="PASS" & TYPE=="SNP",3][[1]])),
                     " (", formatter(sd(gqfilters[FILTER=="PASS" & TYPE=="SNP",3][[1]])), ")")
 meangqindel <- paste0(formatter(mean(gqfilters[FILTER=="PASS" & TYPE=="INDEL",3][[1]])),
@@ -164,33 +171,168 @@ variantmetrics <- data.frame(SNPs = c(meanqualsnp, meanqdsnp, meanfssnp, meansor
                                         meanmqindel, meanmqrsindel, meanrprsindel,
                                         meangqindel, meandpindel),
                              row.names = rowtitles)
+
+# Plot the variant metrics per SNP and INDEL for FAIL and PASS
+# First subsample the data for a smaller plotting dataset
+metrics.plot <- setDT(metrics.table)[, .SD[sample(.N, round(params$sample*.N,0), replace=F)], by = .(FILTER, TYPE)]
+
+# GQ
+plotdata <- metrics.plot[,.SD, .SDcols=20, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+cols <- brewer.pal(8, "Dark2")[c(6,3)]
+title <- "Genotype Quality (GQ)"
+ylab <- "Density"
+xlab <- "GQ"
+labels <- c("FAIL", "PASS")
+alpha <- 0.8
+adjust <- 0.6
+legendpos <- c(0.15,0.8)
+
+gq <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = legendpos,
+        axis.title.x = element_blank())
+
+# DP
+plotdata <- metrics.plot[, DP, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Depth (DP)"
+xlab <- "DP"
+alpha <- 0.5
+dp <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+# QUAL
+plotdata <- metrics.plot[, QUAL, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Variant Quality (QUAL)"
+xlab <- "QUAL"
+alpha <- 0.5
+qual <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+# QD
+plotdata <- metrics.plot[, QD, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Quality by Depth (QD)"
+xlab <- "QD"
+alpha <- 0.5
+qd <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+# FS
+plotdata <- metrics.plot[, FS, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Strand Bias Fisher's Exact Test (FS)"
+xlab <- "FS"
+alpha <- 0.8
+fs <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+# SOR
+plotdata <- metrics.plot[, SOR, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Strand Odds Ratio (SOR)"
+xlab <- "SOR"
+alpha <- 0.5
+sor <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+# MQ
+plotdata <- metrics.plot[, MQ, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Mapping Quality (MQ)"
+xlab <- "MQ"
+alpha <- 0.8
+mq <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+# MQRankSum
+plotdata <- metrics.plot[, MQRankSum, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Mapping Quality Rank Sum"
+xlab <- "MQRankSum"
+alpha <- 0.8
+mqrs <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
+
+# ReadPosRankSum
+plotdata <- metrics.plot[, ReadPosRankSum, by=.(FILTER, TYPE)]
+colnames(plotdata) <- c("variable", "facet", "value")
+plotdata$variable <- factor(plotdata$variable, levels = c("FAIL", "PASS"))
+plotdata$facet <- factor(plotdata$facet, levels = c("SNP", "INDEL"))
+title <- "Read Position Rank Sum"
+xlab <- "ReadPosRankSum"
+alpha <- 0.5
+rprs <- densityplot(plotdata, title, xlab, ylab, cols, labels, alpha, adjust) + 
+  facet_wrap(~facet, ncol = 2) + 
+  theme(legend.position = "none",
+        axis.title.x = element_blank())
 ```
+
+***
+
 ### Run info
 **Sample:** `r params$dataset`  
 **Run date:** `r Sys.Date()`  
 **Scripts:** `r params$scripts`  
 **Data dir:** `r params$input_dir` 
 
+***
+
 Default filters were applied to SNPs and INDELs separately as follows (SNP threshold / INDEL threshold):  
-    - **QUAL** < 40/50  
-    - **QD** < 12/10  
-    - **FS** > 15/10  
-    - **SOR** > 2.5/2.5  
-    - **MQ** < 40/50  
-    - **MQRankSum** < -2/-2  
-    - **ReadPosRankSum** < -2/-2  
-    - **GQ** < 60/60  
-    - **DP** < 8/10 
+* **QUAL**            < 40/50  
+* **QD**              < 12/10  
+* **FS**              > 15/10  
+* **SOR**             > 2.5/2.5  
+* **MQ**              < 40/50  
+* **MQRankSum**       < -2/-2  
+* **ReadPosRankSum**  < -2/-2  
+* **GQ**              < 60/60  
+* **DP**              < 8/10 
 
 The VCF file **`r paste0(params$dataset, ".vcf.gz")`** contain all variants and genotypes.  
-Only **FILTER** and **FORMAT/FT** columns set accordingly, if certain filtering threshold was not met.
+Only **FILTER** and **FORMAT/FT** columns set accordingly, if certain filtering threshold was not met.  
 
-### Raw and filtered sample-wise quality metrics
+***
+
+### Sample-wise metrics raw and filtered with default thresholds
 ```{r, echo = FALSE}
 # Print with rownames as row titles
   kable_styling(kable(samplemetrics), bootstrap_options = "striped", full_width = F, position = "left")
 ```
 
+***
 
 ### Known (dbSNP) and novel variants filtered with default thresholds
 ```{r, echo = FALSE}
@@ -198,9 +340,17 @@ Only **FILTER** and **FORMAT/FT** columns set accordingly, if certain filtering 
   kable_styling(kable(knowntable), bootstrap_options = "striped", full_width = F, position = "left")
 ```
 
+***
 
 ### Variant-wise quality metrics for SNPs and INDELs filtered with default thresholds
 ```{r, echo = FALSE}
 # Print with rownames as row titles
   kable_styling(kable(variantmetrics), bootstrap_options = "striped", full_width = F, position = "left")
+```
+
+***
+
+### Quality metrics plots for SNPs and INDELs with and without default filtering
+```{r, echo = FALSE, message = FALSE, warning = FALSE, out.width='100%', out.height='100%'}
+grid.arrange(gq, dp, qual, qd, fs, sor, mq, mqrs, rprs, ncol = 3)
 ```
