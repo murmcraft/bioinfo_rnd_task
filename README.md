@@ -14,7 +14,7 @@ The raw data was obtained from [GATK tutorial data set](https://drive.google.com
 
 The Dockerfile is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) with added tools and functionalities.
 
-It e.g. includes GATK4 and additional tools required for the pipeline:
+It includes GATK4 and additional tools required for the pipeline, for instance:
 - GATK v4.1.0.0
 - SAMtools v1.9
 - BCFtools v1.9
@@ -81,29 +81,18 @@ wget --user='gsapubftp-anonymous' --password='' \
     ftp://ftp.broadinstitute.org/bundle/b37/dbsnp_138.b37.excluding_sites_after_129.vcf.gz*
 wget --user='gsapubftp-anonymous' --password='' \
     ftp://ftp.broadinstitute.org/bundle/b37/Mills_and_1000G_gold_standard.indels.b37.vcf.gz*
-wget --user='gsapubftp-anonymous' --password='' \
-    ftp://ftp.broadinstitute.org/bundle/b37/1000G_omni2.5.b37.vcf.gz*
-wget --user='gsapubftp-anonymous' --password='' \
-    ftp://ftp.broadinstitute.org/bundle/b37/1000G_phase3_v4_20130502.sites.vcf.gz*
 ```
 Unzip, BGZF compress and index the files:
 ```
 gunzip Homo_sapiens.GRCh37.dna.primary_assembly.fa.gz
 gunzip dbsnp_138.b37.excluding_sites_after_129.vcf.gz
 gunzip Mills_and_1000G_gold_standard.indels.b37.vcf.gz
-gunzip 1000G_omni2.5.b37.vcf.gz
-gunzip 1000G_phase3_v4_20130502.sites.vcf.gz
 bcftools view dbsnp_138.b37.excluding_sites_after_129.vcf \
     -Oz -o dbsnp_138.b37.excluding_sites_after_129.vcf.gz
 bcftools index -t dbsnp_138.b37.excluding_sites_after_129.vcf.gz
 bcftools view Mills_and_1000G_gold_standard.indels.b37.vcf \
     -Oz -o Mills_and_1000G_gold_standard.indels.b37.vcf.gz
 bcftools index -t Mills_and_1000G_gold_standard.indels.b37.vcf.gz
-bcftools view 1000G_omni2.5.b37.vcf -Oz -o 1000G_omni2.5.b37.vcf.gz
-bcftools index -t 1000G_omni2.5.b37.vcf.gz
-bcftools view 1000G_phase3_v4_20130502.sites.vcf \
-    -Oz -o 1000G_phase3_v4_20130502.sites.vcf.gz
-bcftools index -t 1000G_phase3_v4_20130502.sites.vcf.gz
 ```
 To generate the fasta file dictionary, use:
 ```
