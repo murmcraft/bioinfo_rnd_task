@@ -7,6 +7,8 @@ INVCF=$1 # Path to input .vcf.gz file
 OUT_PREFIX=$2 # Output file prefix
 FASTA=$3 # Reference genome .fasta file
 DBSNP=$4 # Known variants from dbSNP
+SCRIPTS=$5 # Path to scripts
+SAMPLESIZE=$6 # Fraction of data to use for plotting
 
 # Create an output directory
 DIR=variant-filtering 
@@ -95,3 +97,12 @@ gatk VariantsToTable \
     -F MQRankSum -F ReadPosRankSum \
     -GF GQ \
     --show-filtered true 
+
+# Generate a HTML report of the quality metrics
+FILE_PREFIX=$(basename ${INVCF%.vcf.gz})
+OUTPUT_DIR=$(pwd)
+Rscript ${SCRIPTS}/generate-variant-QC-report.R \
+    ${OUTPUT_DIR} \
+    ${FILE_PREFIX} \
+    ${SCRIPTS} \
+    ${SAMPLESIZE}
