@@ -17,6 +17,7 @@ setwd(params$input_dir)
 library(ggplot2)
 library(RColorBrewer)
 library(reshape2)
+library(gridExtra)
 
 # Source functions
 source(paste0(params$scripts, "/plot-theme.R"))
@@ -55,13 +56,14 @@ alnmetrics <- format(setNames(data.frame(t(alnmetrics[,-1])),
 summarytable <- data.frame(Total = alnmetrics$PAIR,
                            First_of_pair = alnmetrics$FIRST_OF_PAIR,
                            Second_of_pair = alnmetrics$SECOND_OF_PAIR)
-colnames(summarytable)[2,3] <- c("1st of pair", "2nd of pair")
+colnames(summarytable)[2:3] <- c("1st of pair", "2nd of pair")
 ```
 
 ```{r, include = FALSE, message = FALSE, warning = FALSE}
 ## PLOTTING ##
 # Separate plottable data according to their type
 mapq <- statlist[[4]]
+qscore <- statlist[[5]]
 statlist <- statlist[1:3]
 
 # Modifictions to plotatble format
@@ -89,6 +91,20 @@ acgt <- lineplot(df, xlim, ylim, title, xlab, ylab, cols, labels) +
                                                        "FBC" = "1st of pair",
                                                        "LBC" = "2nd of pair"))) +
   theme(legend.justification = "right") 
+
+# Base quality
+df <- qscore
+colnames(df) <- c("x", "value")
+df$variable <- "BQ"
+xaxis <- scale_x_continuous(expand = c(0,0))
+yaxis <- scale_y_continuous(expand = c(0,0))
+title <- "Base quality score distribution"
+xlab <- "Phred score"
+ylab <- "Frequency"
+cols <- brewer.pal(9, "Greys")[6]
+labels <- c("")
+baseq <- barplot(df, xaxis, yaxis, title, xlab, ylab, cols, labels) + 
+  theme(legend.position = "none") 
 
 # Coverage distribution
 df <- plotdata[[2]]
@@ -150,11 +166,12 @@ indel_length <- barplot(df, xaxis, yaxis, title, xlab, ylab, cols, labels) +
 **Scripts:** `r params$scripts`  
 **Data dir:** `r params$input_dir` 
 
-***
-
-BAM processing included duplicate marking and base quality score recalibration
+BAM processing included duplicate read marking and base quality score recalibration
 according to GATK Best Practices.
 
+***
+
+### BAM quality values
 ```{r, echo = FALSE}
 # Print with rownames as row titles
   kable_styling(kable(summarytable), bootstrap_options = "striped", full_width = F, position = "left")
@@ -163,27 +180,27 @@ according to GATK Best Practices.
 ***
 
 ### A, C, G and T content per cycle
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
 acgt
 ```
 
 ***
 
+### Quality value distributions 
+```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
+grid.arrange(baseq, mapqplot, ncol = 2)
+```
+
+***
+
 ### Coverage histograms 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
 coverage
 ```
 
 ***
 
-### Mapping quality distribution 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
-mapqplot
-```
-
-***
-
 ### Indel lengths 
-```{r, echo = FALSE, message = FALSE, warning = FALSE}
+```{r, echo = FALSE, message = FALSE, warning = FALSE, out.height='70%'}
 indel_length
 ```
