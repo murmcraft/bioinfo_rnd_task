@@ -62,7 +62,7 @@ echo "Step 1 - Mark duplicates - Started"
 mark-duplicates.sh \
     ${WKD}/${DATASET}.bam \
     ${DATASET}_markdups \
-    2>&1 > ${WKD}/run-logs/mark-duplicates.log
+    &> ${WKD}/run-logs/mark-duplicates.log
 echo "Step 1 - Mark duplicates - Finished"
 echo "Step 1 outputs stored in: "${WKD}/mark-duplicates
 
@@ -74,7 +74,7 @@ base-quality-score-recalibration.sh \
     ${FASTA} \
     ${DBSNP} \
     ${INDELS} \
-    2>&1 > ${WKD}/run-logs/base-quality-score-recalibration.log
+    &> ${WKD}/run-logs/base-quality-score-recalibration.log
 echo "Step 2 - Base Quality Score Recalibration - Finished"
 echo "Step 2 outputs stored in: ${WKD}/base-quality-score-recalibration/"
 
@@ -86,7 +86,7 @@ collect-alignment-metrics.sh \
     ${FASTA} \
     ${SAMPLE_SIZE} \
     ${SCRIPTS} \
-    2>&1 > ${WKD}/run-logs/collect-alignment-metrics.log
+    &> ${WKD}/run-logs/collect-alignment-metrics.log
 echo "Step 3 - Alignment quality - Finished"
 echo "Step 3 outputs stored in: ${WKD}/alignment-quality-metrics/"
 
@@ -97,7 +97,7 @@ variant-calling.sh \
     ${DATASET} \
     ${FASTA} \
     ${INTERVALS} \
-    2>&1 > ${WKD}/run-logs/variant-calling.log
+    &> ${WKD}/run-logs/variant-calling.log
 echo "Step 4 - Variant calling - Finished"
 echo "Step 4 outputs stored in: ${WKD}/variant-calling/"
 
@@ -111,7 +111,7 @@ variant-filtering.sh \
     ${DBSNP} \
     ${SCRIPTS} \
     ${SAMPLE_SIZE} \
-    2>&1 > ${WKD}/run-logs/variant-filtering.log
+    &> ${WKD}/run-logs/variant-filtering.log
 echo "Step 5 - Variant filtering and quality metrics - Finished"
 echo "Step 5 outputs stored in: ${WKD}/variant-filtering/"
 
