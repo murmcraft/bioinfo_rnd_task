@@ -8,7 +8,9 @@ This pipeline implements the following steps:
 5. Variant filtering with hard-coded thresholds
 6. Variant quality metrics reporting
 
-The pipeline follows GATK Best Practices and is composed into a Docker image. The image is based on [GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) and contains for instance:
+***
+
+The pipeline follows GATK Best Practices and is composed into a Docker image. The image is based on [GATK image](https://hub.docker.com/r/broadinstitute/gatk/) and contains for instance:
 - GATK v4.1.0.0
 - SAMtools v1.9
 - BCFtools v1.9
@@ -21,6 +23,7 @@ The workflow is tested with a small WGS dataset for sample NA12878 for chromosom
 
 **Example dataset and resulting files** are in `testdata.tar.gz` and included in the image in `/testdata/`.
 
+***
 
 ## 1. Preparatory steps and input files
 
