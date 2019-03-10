@@ -8,7 +8,7 @@ This pipeline implements the following steps:
 5. Variant filtering with hard-coded thresholds
 6. Variant quality metrics reporting
 
-The pipeline follows GATK Best Practices and is composed into a Docker image. The image is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) and contains for instance:
+The pipeline follows GATK Best Practices and is composed into a Docker image. The image is based on [GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) and contains for instance:
 - GATK v4.1.0.0
 - SAMtools v1.9
 - BCFtools v1.9
@@ -17,9 +17,9 @@ As well as:
 - pipeline scripts
 - test BAM file
 
-The workflow is tested with a small WGS dataset for sample NA12878 for chromosome 10 region subset. The raw data was obtained from [GATK tutorial data set](https://drive.google.com/file/d/0BzI1CyccGsZiWURLdUdfRjVQazg/view), converted to fastq format and re-aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl) recommendations.
+The workflow is tested with a small WGS dataset for sample NA12878 for chromosome 10 region subset. The raw data was obtained from a [GATK tutorial dataset](https://drive.google.com/file/d/0BzI1CyccGsZiWURLdUdfRjVQazg/view), converted to fastq format and re-aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl) recommendations.
 
-**Example dataset and resulting files** can be found at `/testdata/`.
+**Example dataset and resulting files** are in `testdata.tar.gz` and included in the image in `/testdata/`.
 
 
 ## 1. Preparatory steps and input files
@@ -66,7 +66,7 @@ validate-sam-file.sh \
     ${WKD}/NA12878.bam \
     NA12878_validate
 ```
-where `/home/NA12878.bam` is path to input BAM file and `NA12878_validate` is output filename prefix.
+where `${WKD}/NA12878.bam` is path to input BAM file and `NA12878_validate` is output filename prefix.
 
 In case errors were found, the script procudes 
 `.summary`and `.verbose` files, which indicate the errors and point their sources.  
@@ -79,7 +79,7 @@ The required files are:
 - known indels,
 - WGS interval list
 
-Depending on to which reference genome your reads are aligned, download corresponding reference files. Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from indicated sources:
+Depending on to which reference genome your reads are aligned, download corresponding reference files. Here, the test data is aligned to GRCh37 reference genome and the corresponding files can be downloaded from the indicated sources:
 ```
 mkdir -p reference-data
 cd reference-data
@@ -111,8 +111,9 @@ To generate the fasta file index, use:
 ```
 samtools faidx Homo_sapiens.GRCh37.dna.primary_assembly.fa
 ```
-Download the WGS interval list manually from [GATK Google Cloud bucket](https://console.cloud.google.com/storage/browser/gatk-test-data/intervals) and place it to the reference-data directory
-- `b37_wgs_consolidated_calling_intervals.list`
+Download the WGS interval list `b37_wgs_consolidated_calling_intervals.list` manually from [GATK Google Cloud bucket](https://console.cloud.google.com/storage/browser/gatk-test-data/intervals) and place it to the `reference-data` directory.
+
+***
 
 ## 2. Run the complete workflow
 
@@ -142,6 +143,7 @@ The full workflow will run each step described in detail below.
 - **Variant calling results:** DATASET_filters.vcf.gz
 - **Variant quality report:** DATASET.DATE.variant-QC.html
 
+***
 
 ## More detailed step-by-step descriptions
 
@@ -161,6 +163,7 @@ where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` 
 - `NA12878_markdups.bam`, BAM file for the next processing step
 - `NA12878_markdups.txt`, summary metrics of the duplicate marking
 
+***
 
 ### Step 2. Base quality score recalibration
 
@@ -179,6 +182,8 @@ where `${WKD}/mark-duplicates/NA12878_markdups.bam` is the path to input BAM fil
 **Resulting output files** at `${WKD}/base-quality-score-recalibration/`:
 - `NA12878_bqsr.bam`, BAM file with index (.bai) for the next processing step
 - `NA12878_bqsr.table`, recalibration table used to correct the base quality scores
+
+***
 
 ### Step 3. Alignment quality
 
@@ -199,6 +204,7 @@ where `${WKD}/base-quality-score-recalibration/NA12878_bqsr.bam` is the path to 
 - `NA12878_quality_qscore.metrics`, base quality score distribution
 - `NA12878_quality_samtools.metrics`, large alignment metrics summary collection from which (currently only) a handful of topics are plotted in the HTML report
 
+***
 
 ### Step 4. Variant calling
 
@@ -219,6 +225,7 @@ where `${WKD}/base-quality-score-recalibration/NA12878_bqsr.bam` is the path to 
 **Resulting output files** at `${WKD}/variant-calling/`:
 - `NA12878.vcf.gz`, a VCF containing raw variant calling results and a corresponding index file (.tbi)
 
+***
 
 ### Step 5. Variant filtering and quality metrics
 Here, due to the tiny example dataset, only hard-coded variant filtering thresholds are used instead of for instance GATK Variant Quality Score Recalibration. 
