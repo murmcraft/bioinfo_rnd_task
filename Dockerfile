@@ -43,5 +43,8 @@ RUN chmod +x /scripts/*
 
 ENV PATH=${PATH}:/scripts
 
-# Enter home directory to start working
+# Add test data
+ADD testdata.tar.gz /testdata/
+
+# Enter home directory
 WORKDIR /home
