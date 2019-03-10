@@ -1,15 +1,14 @@
 # A tiny NGS pipeline for a simple variant calling and quality control
 
 This pipeline implements the following steps:
-- input as BAM file
-- BAM quality control
-- variant calling on split BAM files
-- merging the variant results together
-- variant calling summary report
+1. Mark duplicate reads
+2. Base quality score recalibration
+3. BAM quality metrics reporting
+4. Variant calling parallelized per genomic intervals
+5. Variant filtering with hard-coded thresholds
+6. Variant quality metrics reporting
 
-The pipeline follows GATK Best Practices and is composed into a Docker image, which is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) with added tools and functionalities.
-
-The image includes GATK4 and additional tools required for the pipeline, for instance:
+The pipeline follows GATK Best Practices and is composed into a Docker image. The image is based on [Broad Institute's GATK docker](https://hub.docker.com/r/broadinstitute/gatk/) and contains for instance:
 - GATK v4.1.0.0
 - SAMtools v1.9
 - BCFtools v1.9
@@ -34,17 +33,20 @@ Build the image:
 docker build -t bioinfo-rnd-task .
 ```
 
-Then, run it while mounting your input data directory (here `testdata`) to `/home`:
+Then, run it and mount your working directory (here `testdata`) to `/home`:
 ```
 docker run -ti \
     -v /path/to/testdata/:/home \
     bioinfo-rnd-task
 ```
 
-First, setup your working directory and ensure your input files are there:
+Setup your working directory and ensure your input files are there:
 ```
 WKD=/home/
-ls ${WKD}
+ls 
+
+# If you wish to use the test dataset, run:
+cp /testdata/NA12878.bam* .
 ```
 
 ### 1.2. Input file requirements and preparations
@@ -115,8 +117,13 @@ Download the WGS interval list manually from [GATK Google Cloud bucket](https://
 ## 2. Run the complete workflow
 
 To run the complete workflow, use the script with wanted inputs:
-
 ```
+# Ensure working directory is set and your input BAM files are there
+WKD=/home/
+cd ${WKD}
+ls
+
+# Run the workflow
 run-workflow.sh \
     ${WKD} \
     /scripts \
