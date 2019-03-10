@@ -137,6 +137,16 @@ run-workflow.sh \
     /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list \
     0.99
 ```
+where 
+`${WKD}` is your working directory containing the input BAM file,  
+`/scripts` is the directory containing all the run scripts,
+`NA12878` is the input BAM file prefix,
+`Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file,
+`dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is a VCF file containing known variants,
+`Mills_and_1000G_gold_standard.indels.b37.vcf.gz` is a VCF file containing known indels,
+`intervals_b37_wgs_consolidated_calling_intervals.list` is a list of non-overlapping genomic intervals for parallelization, and
+`0.99` is a fraction to use for subsetting the data for faster processing, here 0.99 due to small example data.
+
 
 The full workflow will run each step described in detail below.
 
