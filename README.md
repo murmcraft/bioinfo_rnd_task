@@ -20,7 +20,7 @@ As well as:
 
 The workflow is tested with a small WGS dataset for sample NA12878 for chromosome 10 region subset. The raw data was obtained from a [GATK tutorial dataset](https://drive.google.com/file/d/0BzI1CyccGsZiWURLdUdfRjVQazg/view), converted to fastq format and re-aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl) recommendations.
 
-**Example dataset and resulting files** are in `testdata.tar.gz` and included in the image in `/testdata/`. See also example HTML reports in `example_reports`.
+**Example dataset and resulting files** are in `testdata.tar.gz` and included in the image in `/testdata/`.
 
 ***
 
