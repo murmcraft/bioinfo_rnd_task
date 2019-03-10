@@ -137,7 +137,7 @@ The full workflow will run each step described below. Wanted steps can also be r
 
 ### Step 1. Mark duplicates
 
-It is recommended practice to mark duplicate reads, which are then ignored in variant calling. Duplicates are determined as those reads whose 5' positions are identical. Often the origin of duplicate reads is the PCR during library preparation, but also sequencing may cause optical duplicates.
+It is recommended practice to mark duplicate reads, which are then ignored in variant calling. Duplicates are determined as those reads whose 5' positions are identical. Often the origin of duplicate reads is the PCR during library preparation, but also sequencing itself may cause optical duplicates.
 
 Run the script to flag duplicate reads and generate a summary metrics file:
 ```
@@ -145,7 +145,11 @@ mark-duplicates.sh \
     ${WKD}/NA12878.bam \
     NA12878_markdups
 ```
-where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files. 
+where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files.
+
+Resulting output files at `${WKD}/mark-duplicates/`:
+- `NA12878_markdups.bam`, BAM file for the next processing step
+- `NA12878_markdups.txt`, summary metrics of the duplicate marking
 
 
 ### Step 2. Base quality score recalibration
@@ -162,6 +166,9 @@ base-quality-score-recalibration.sh \
 ```
 where `${WKD}/NA12878.bam` is the path to input BAM file, `NA12878_bqsr` is a output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
+Resulting output files at `${WKD}/base-quality-score-recalibration/`:
+- `NA12878_bqsr.bam`, BAM file with index (.bai) for the next processing step
+- `NA12878_bqsr.table`, recalibration table used to correct the base quality scores
 
 ### Step 3. Alignment quality
 
@@ -176,7 +183,11 @@ collect-alignment-metrics.sh \
 ```
 where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data), and `/scripts` is the path to scripts directory.
 
-The script generates an HTML report `NA12878_bqsr.<date>.BAM_QC_report.html` containing BAM quality metrics (currently only summary metrics table, ACGT content per cycle plot, coverage, mapping quality and indel lengths histograms are implemented).
+Resulting output files at `${WKD}/alignment-quality-metrics/`:
+- `NA12878_bqsr.<date>.BAM_QC_report.html`, BAM quality metrics report
+- `NA12878_quality_alignment.metrics`, alignment metrics summary used for the HTML report table
+- `NA12878_quality_qscore.metrics`, base quality score distribution
+- `NA12878_quality_samtools.metrics`, large alignment metrics summary collection from which (currently only) a handful of topics are plotted in the HTML report
 
 
 ### Step 4. Variant calling
@@ -194,6 +205,10 @@ variant-calling.sh \
     /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list
 ```
 
+Resulting output files at `${WKD}/variant-calling/`:
+- `NA12878.vcf.gz`, a VCF containing raw variant calling results and a corresponding index file (.tbi)
+
+
 ### Step 5. Variant filtering and quality metrics
 Here, due to the tiny example dataset, only hard-coded variant filtering thresholds are used instead of for instance GATK Variant Quality Score Recalibration. 
 
@@ -208,7 +223,9 @@ variant-filtering.sh \
 ```
 where `NA12878.vcf.gz` is the input VCF filename, `NA12878` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the known SNPs from dbSNP, `/scripts` is the path to scripts directory, and `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data).
 
-The script generates: 
-- a VCF file `NA12878_filters.vcf.gz`, which contain all original variants, but FILTER and FORMAT/FT columns are populated with the information whether the default filtering thresholds were passed or which filter failed,
-- a quality metrics table `NA12878.table`, which contain all variant quality metrics values, and
-- an HTML report `NA12878.<date>.variant_QC_report.html` containing sample- and variant-wise quality metrics and quality plots.
+Resulting output files at `${WKD}/variant-filtering/`:
+- `NA12878.<date>.variant_QC.html` containing sample- and variant-wise quality metrics and quality plots
+- `NA12878.table`, a table containing several quality metrics values for all variants
+- `NA12878.variant_calling_summary_metrics` and `_detail_metrics`, tables containing summary quality metrics values used to generate the known/novel variant table in the HTML report
+- `NA12878_filters.vcf.gz`, a VCF file and corresponding index file (.tbi) containing all original variants, but FILTER and FORMAT/FT columns are populated with the information whether the default filtering thresholds were passed or which filter failed
+
