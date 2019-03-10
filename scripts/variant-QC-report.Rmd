@@ -36,8 +36,6 @@ formatter <- function(x) {
 metrics.table <- fread(list.files(path = params$input_dir, pattern = ".table"), header = T)
 metrics.summary <- read.delim(list.files(path = params$input_dir, pattern = "*_summary_metrics"), 
                               header = T, stringsAsFactors = F, comment.char = '#')
-metrics.detail <- read.delim(list.files(path = params$input_dir, pattern = "*_detail_metrics"), 
-                             header = T, stringsAsFactors = F, comment.char = '#')
 
 ## SUMMARY TABLE ##
 # Generate a pretty output table for sample quality metrics
