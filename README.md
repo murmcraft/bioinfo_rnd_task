@@ -145,7 +145,7 @@ where
 `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is a VCF file containing known variants,
 `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` is a VCF file containing known indels,
 `intervals_b37_wgs_consolidated_calling_intervals.list` is a list of non-overlapping genomic intervals for parallelization, and
-`0.99` is a fraction to use for subsetting the data for faster processing, here 0.99 due to small example data.
+`0.99` is a fraction for subsetting the data for faster processing, here 0.99 due to the small example data.
 
 
 The full workflow will run each step described in detail below.
