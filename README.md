@@ -20,6 +20,9 @@ As well as:
 
 The workflow is tested with a small WGS dataset for sample NA12878 for chromosome 10 region subset. The raw data was obtained from [GATK tutorial data set](https://drive.google.com/file/d/0BzI1CyccGsZiWURLdUdfRjVQazg/view), converted to fastq format and re-aligned to the GRCh37 reference genome with `bwa mem` according to [GATK workflow](https://github.com/gatk-workflows/gatk4-data-processing/blob/master/processing-for-variant-discovery-gatk4.wdl) recommendations.
 
+**Example dataset and resulting files** can be found at `testdata/`.
+
+
 ## 1. Preparatory steps and input files
 
 ### 1.1. Build and run the Docker image
@@ -125,7 +128,7 @@ run-workflow.sh \
     0.99
 ```
 
-The full workflow will run each step described below. Wanted steps can also be run separately according to the command examples.
+The full workflow will run each step described in detail below.
 
 ### Most relevant output files
 - **BAM quality report:** DATASET_bqsr.DATE.BAM-QC.html
@@ -145,9 +148,9 @@ mark-duplicates.sh \
     ${WKD}/NA12878.bam \
     NA12878_markdups
 ```
-where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` is a prefix for the output `.bam` and `.txt` files.
+where `${WKD}/NA12878.bam` is the path to input BAM file and `NA12878_markdups` is an output filename prefix for the output `.bam` and `.txt` files.
 
-Resulting output files at `${WKD}/mark-duplicates/`:
+**Resulting output files** at `${WKD}/mark-duplicates/`:
 - `NA12878_markdups.bam`, BAM file for the next processing step
 - `NA12878_markdups.txt`, summary metrics of the duplicate marking
 
@@ -164,9 +167,9 @@ base-quality-score-recalibration.sh \
     /home/reference-data/dbsnp_138.b37.excluding_sites_after_129.vcf.gz \
     /home/reference-data/Mills_and_1000G_gold_standard.indels.b37.vcf.gz
 ```
-where `${WKD}/NA12878.bam` is the path to input BAM file, `NA12878_bqsr` is a output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
+where `${WKD}/mark-duplicates/NA12878_markdups.bam` is the path to input BAM file, `NA12878_bqsr` is an output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the dbSNP known variants and `Mills_and_1000G_gold_standard.indels.b37.vcf.gz` contain the known indels. 
 
-Resulting output files at `${WKD}/base-quality-score-recalibration/`:
+**Resulting output files** at `${WKD}/base-quality-score-recalibration/`:
 - `NA12878_bqsr.bam`, BAM file with index (.bai) for the next processing step
 - `NA12878_bqsr.table`, recalibration table used to correct the base quality scores
 
@@ -181,9 +184,9 @@ collect-alignment-metrics.sh \
     0.99 \
     /scripts
 ```
-where `NA12878_bqsr.bam` is input BAM filename, `NA12878_quality` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data), and `/scripts` is the path to scripts directory.
+where `${WKD}/base-quality-score-recalibration/NA12878_bqsr.bam` is the path to input BAM file, `NA12878_quality` is an output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data), and `/scripts` is the path to scripts directory.
 
-Resulting output files at `${WKD}/alignment-quality-metrics/`:
+**Resulting output files** at `${WKD}/alignment-quality-metrics/`:
 - `NA12878_bqsr.<date>.BAM_QC_report.html`, BAM quality metrics report
 - `NA12878_quality_alignment.metrics`, alignment metrics summary used for the HTML report table
 - `NA12878_quality_qscore.metrics`, base quality score distribution
@@ -204,8 +207,9 @@ variant-calling.sh \
     /home/reference-data/Homo_sapiens.GRCh37.dna.primary_assembly.fa \
     /home/reference-data/intervals_b37_wgs_consolidated_calling_intervals.list
 ```
+where `${WKD}/base-quality-score-recalibration/NA12878_bqsr.bam` is the path to input BAM file, `NA12878` is an output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, and `intervals_b37_wgs_consolidated_calling_intervals.list` is a list of non-overlapping genomic intervals used for parallelization.
 
-Resulting output files at `${WKD}/variant-calling/`:
+**Resulting output files** at `${WKD}/variant-calling/`:
 - `NA12878.vcf.gz`, a VCF containing raw variant calling results and a corresponding index file (.tbi)
 
 
@@ -221,9 +225,9 @@ variant-filtering.sh \
     /scripts \
     0.99
 ```
-where `NA12878.vcf.gz` is the input VCF filename, `NA12878` is output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the known SNPs from dbSNP, `/scripts` is the path to scripts directory, and `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data).
+where `${WKD}/variant-calling/NA12878.vcf.gz` is the input VCF filename, `NA12878` is an output filename prefix, `Homo_sapiens.GRCh37.dna.primary_assembly.fa` is the reference genome fasta file, `dbsnp_138.b37.excluding_sites_after_129.vcf.gz` is the known SNPs from dbSNP, `/scripts` is the path to scripts directory, and `0.99` is the subsampling fraction (here 99 %, because the test dataset is extremely small, but for a full WGS dataset one should choose a small value e.g. 0.20 depending on the size of the input data).
 
-Resulting output files at `${WKD}/variant-filtering/`:
+**Resulting output files** at `${WKD}/variant-filtering/`:
 - `NA12878.<date>.variant_QC.html` containing sample- and variant-wise quality metrics and quality plots
 - `NA12878.table`, a table containing several quality metrics values for all variants
 - `NA12878.variant_calling_summary_metrics` and `_detail_metrics`, tables containing summary quality metrics values used to generate the known/novel variant table in the HTML report
